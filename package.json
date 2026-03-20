@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest --watchAll --verbose",
     "build": "webpack --config webpack.prod.js",
     "dev": "webpack serve --config webpack.dev.js",
     "deploy": "git subtree push --prefix dist origin gh-pages",
@@ -21,6 +21,7 @@
   "homepage": "https://github.com/TomTatertot/webpack-template#readme",
   "description": "",
   "devDependencies": {
+    "@babel/preset-env": "^7.29.2",
     "@eslint/css": "^0.11.0",
     "@eslint/js": "^9.35.0",
     "@types/jest": "^30.0.0",
