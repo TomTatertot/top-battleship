@@ -1,4 +1,6 @@
 import { Ship } from "../src/ship";
+import { Gameboard } from "../src/gameboard";
+import { before } from "node:test";
 
 describe('Ship class', () => {
   test('increments numHits by one', () => {
@@ -16,5 +18,19 @@ describe('Ship class', () => {
       ship.hit();
     }
     expect(ship.isSunk()).toBe(true);
+  })
+})
+
+describe('Gameboard class', () => {
+  beforeEach(() => {
+    const gameboard = new Gameboard();
+    const tile = gameboard.getTile(0,0);
+  })
+  // const gameboard = new Gameboard();
+  // const tile = gameboard.getTile(0,0);
+  test('tile.x at (2,0) equals 2 ', () => {
+    const gameboard = new Gameboard();
+    const tile = gameboard.getTile(2,0);
+    expect(tile.x).toBe(2);
   })
 })
