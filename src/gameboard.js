@@ -2,80 +2,74 @@ import { Ship } from "./ship";
 // import { Tile } from "./tile";
 
 class Gameboard {
-  constructor(){
+  constructor() {
     this.size = 10;
     this.grid = this.#constructGrid(this.size);
     this.missedCoordinates = [];
   }
 
-  #constructGrid(size){
+  #constructGrid(size) {
     const gridArray = new Array(size);
-    for (let i = 0; i < gridArray.length; i++){
+    for (let i = 0; i < gridArray.length; i++) {
       gridArray[i] = new Array(size).fill(null);
     }
     // const charCode = 65;
-    for (let i = 0; i < size; i++){
-      for(let j = 0; j < size; j++){
-        // let tileCharacter = String.fromCharCode(charCode + j)
-        gridArray[i][j] = null;
-      }
-    }
+    // for (let i = 0; i < size; i++){
+    //   for(let j = 0; j < size; j++){
+    //     // let tileCharacter = String.fromCharCode(charCode + j)
+    //     gridArray[i][j] = null;
+    //   }
+    // }
     return gridArray;
   }
 
-  placeShipVertical(xPos, yPos, shipLength){
+  placeShipVertical(x, y, shipLength) {
     //pivot point of the ship will be the top end / left end before adjusting for grid overflow.
     //check for any collisions
-    for (let i = 0; i < shipLength; i++){
-      let currTile = this.grid[xPos][yPos + i];
-      if (currTile && currTile !== null)
-      {
-        console.log("Ship collision!")
-        return;
+    for (let i = 0; i < shipLength; i++) {
+      if (y + i < this.size) {
+        let currTile = this.grid[x][y + i];
+        if (currTile !== null) {
+          return;
+        }
       }
     }
 
     const newShip = new Ship(shipLength);
     let overflow = 0;
-    for (let i = 0; i < shipLength; i++){
-      if (yPos + i < this.size)
-      {
-        this.grid[xPos][yPos + i] = newShip;
-      }
-      else {
+    for (let i = 0; i < shipLength; i++) {
+      if (y + i < this.size) {
+        this.grid[x][y + i] = newShip;
+      } else {
         overflow++;
-        this.grid[xPos][yPos - overflow] = newShip;
+        this.grid[x][y - overflow] = newShip;
       }
     }
   }
 
-  placeShipHorizontal(xPos, yPos, shipLength){
+  placeShipHorizontal(x, y, shipLength) {
     //pivot point of the ship will be the top end / left end before adjusting for grid overflow.
     //check for any collisions
-    for (let i = 0; i < shipLength; i++){
-      let currTile = this.grid[xPos + i][yPos];
-      if (currTile && currTile !== null)
-      {
-        console.log("Ship collision!")
-        return;
+    for (let i = 0; i < shipLength; i++) {
+      if (x + i < this.size) {
+        let currTile = this.grid[x + i][y];
+        if (currTile !== null) {
+          return;
+        }
       }
     }
 
     const newShip = new Ship(shipLength);
     let overflow = 0;
-    for (let i = 0; i < shipLength; i++){
-      if (xPos + i < this.size)
-      {
-        this.grid[xPos + i][yPos] = newShip;
-      }
-      else {
+    for (let i = 0; i < shipLength; i++) {
+      if (x + i < this.size) {
+        this.grid[x + i][y] = newShip;
+      } else {
         overflow++;
-        this.grid[xPos - overflow][yPos] = newShip;
+        this.grid[x - overflow][y] = newShip;
       }
     }
   }
-
-  
 }
 
-export {Gameboard};
+export { Gameboard };
