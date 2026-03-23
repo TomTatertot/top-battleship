@@ -4,7 +4,7 @@ class Tile {
     this.x = x;
     this.y = y;
     this.ship = null;
-    this.hit = false;
+    this.isHit = false;
   }
 }
 

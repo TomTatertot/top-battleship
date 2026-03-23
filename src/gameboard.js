@@ -22,8 +22,33 @@ class Gameboard {
     return boardArray;
   }
   
-  getTile(x, y){
-    return this.board[x][y];
+  // getTile(x, y){
+  //   return this.board[x][y];
+  // }
+
+  placeShip(xPos, yPos, shipLength){
+    //pivot point of the ship will be the top end / left end before adjusting for board overflow.
+    //check for any collisions
+    for (let i = 0; i < shipLength; i++){
+      let currTile = this.board[xPos][yPos + i];
+      if (currTile.ship !== null)
+      {
+        console.log("Ship collision!")
+        return;
+      }
+    }
+    const newShip = new Ship(shipLength);
+    let overflow = 0;
+    for (let i = 0; i < shipLength; i++){
+      let currTile;
+      if (this.board[xPos][yPos + i] !== undefined)
+        currTile = this.board[xPos][yPos + i];
+      else {
+        overflow++;
+        currTile = this.board[xPos][yPos + overflow];
+      }
+      currTile.ship = newShip;
+    }
   }
 }
 
