@@ -77,44 +77,42 @@ describe("Gameboard placeShipHorizontal", () => {
   });
 });
 
-describe("Gameboard placeShipVertical overflow", () => {
-  let gameboard = new Gameboard();
-  let grid = gameboard.grid;
+describe("Gameboard overflow", () => {
   let x = 9;
   let y = 9;
   let shipLength = 3;
   let overflow = 2;
-  gameboard.placeShipVertical(x, y, shipLength);
+  describe("Vertical overflow", () => {
+    let gameboard = new Gameboard();
+    let grid = gameboard.grid;
+    gameboard.placeShipVertical(x, y, shipLength);
 
-  test("Ship is placed in correct tile coordinates after adjusting for overflow.", () => {
-    let tiles = [];
-    for (let i = 0; i < shipLength; i++) {
-      tiles.push(grid[x][(y-overflow) + i]);
-    }
-    expect(tiles).toEqual(expect.arrayOf(expect.any(Ship)));
+    test("Ship is placed in correct tile coordinates after adjusting for overflow.", () => {
+      let tiles = [];
+      for (let i = 0; i < shipLength; i++) {
+        tiles.push(grid[x][y - overflow + i]);
+      }
+      expect(tiles).toEqual(expect.arrayOf(expect.any(Ship)));
+    });
+    test("Tile above ship is null", () => {
+      expect(grid[x][y - overflow - 1]).toBe(null);
+    });
   });
-  test("Tile above ship is null", () => {
-    expect(grid[x][(y-overflow-1)]).toBe(null);
-  });
-});
 
-describe("Gameboard placeShipHorizontal overflow", () => {
-  let gameboard = new Gameboard();
-  let grid = gameboard.grid;
-  let x = 9;
-  let y = 9;
-  let shipLength = 3;
-  let overflow = 2;
-  gameboard.placeShipHorizontal(x, y, shipLength);
+  describe("Horizontal overflow", () => {
+    let gameboard = new Gameboard();
+    let grid = gameboard.grid;
+    gameboard.placeShipHorizontal(x, y, shipLength);
 
-  test("Ship is placed in correct tile coordinates after adjusting for overflow.", () => {
-    let tiles = [];
-    for (let i = 0; i < shipLength; i++) {
-      tiles.push(grid[(x-overflow) + i][y]);
-    }
-    expect(tiles).toEqual(expect.arrayOf(expect.any(Ship)));
-  });
-  test("Tile left of ship is null", () => {
-    expect(grid[x-overflow-1][y]).toBe(null);
+    test("Ship is placed in correct tile coordinates after adjusting for overflow.", () => {
+      let tiles = [];
+      for (let i = 0; i < shipLength; i++) {
+        tiles.push(grid[x - overflow + i][y]);
+      }
+      expect(tiles).toEqual(expect.arrayOf(expect.any(Ship)));
+    });
+    test("Tile left of ship is null", () => {
+      expect(grid[x - overflow - 1][y]).toBe(null);
+    });
   });
 });
