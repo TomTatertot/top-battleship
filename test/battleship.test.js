@@ -34,14 +34,6 @@ describe("Gameboard class", () => {
   test("tile.ship (2,9) initially equals null", () => {
     expect(tile.ship).toBe(null);
   });
-  // test("tile.ship at (2,9) should be set to a ship object once a ship is placed", () => {
-  //   gameboard.placeShip(2, 9, 2);
-  //   expect(tile.ship).toBeInstanceOf(Ship);
-  // });
-  // test("tile.ship at (2,9) should be set to a ship object once a ship is placed", () => {
-  //   gameboard.placeShip(2, 9, 2);
-  //   expect(tile.ship).toBeInstanceOf(Ship);
-  // });
 });
 
 describe("Gameboard placeShip", () => {
@@ -51,20 +43,36 @@ describe("Gameboard placeShip", () => {
   });
 
   test("tile.ship at (1,1) should be set to a ship object once a ship is placed", () => {
-    gameboard.placeShip(1, 1, 3);
+    gameboard.placeShipVertical(1, 1, 3);
     let tile = gameboard.board[1][1];
     expect(tile.ship).toBeInstanceOf(Ship);
   });
   test("tile.ship at (1,0) should be null if ship is placed at (1,1)", () => {
-    gameboard.placeShip(1, 1, 3);
+    gameboard.placeShipVertical(1, 1, 3);
     let tile = gameboard.board[1][0];
     expect(tile.ship).toBe(null);
   });
   test("tile.ship at (1,1), (1,2), and (1,3) should be a Ship object if a ship with a length of 3 is placed at (1,1)", () => {
-    gameboard.placeShip(1, 1, 3);
+    gameboard.placeShipVertical(1, 1, 3);
     let tiles = [];
     for (let i = 0; i < 3; i++) {
       tiles.push(gameboard.board[1][1 + i].ship);
+    }
+    expect(tiles).toEqual(expect.arrayOf(expect.any(Ship)));
+  });
+});
+
+describe("Gameboard placeShip overflow", () => {
+  let gameboard;
+  beforeEach(() => {
+    gameboard = new Gameboard();
+  });
+
+  test("Ship with length of 3 placed at (9,9) should be positioned at (9,7), (9,8), and (9,6)", () => {
+    gameboard.placeShipVertical(9,9,3);
+    let tiles = [];
+    for (let i = 0; i < 3; i++){
+      tiles.push(gameboard.board[9][7+i].ship)
     }
     expect(tiles).toEqual(expect.arrayOf(expect.any(Ship)));
   });
