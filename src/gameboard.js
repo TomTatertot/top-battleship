@@ -18,59 +18,37 @@ class Gameboard {
   }
 
   placeShipVertical(x, y, shipLength) {
-    //pivot point of the ship will be the top end / left end before adjusting for grid overflow.
-    //check for any collisions
-    if (x >= this.size || y >= this.size) return;
+    //pivot point of the ship will be the top end / left end
+    if (x >= this.size || x < 0) return;
+    if (y + shipLength >= this.size || y < 0) return;
 
-    if (x < 0 || y < 0) return;
-
+    //check for collisions
     for (let i = 0; i < shipLength; i++) {
-      if (y + i < this.size) {
-        let currTile = this.grid[x][y + i];
-        if (currTile !== null) {
-          return;
-        }
-      }
+      if (this.grid[x][y + i] !== null) return;
     }
 
-    const newShip = new Ship(shipLength);
-    this.ships.push(newShip);
-    let overflow = 0;
+    console.log(x, y);
+    let ship = new Ship(shipLength);
+    this.ships.push(ship);
     for (let i = 0; i < shipLength; i++) {
-      if (y + i < this.size) {
-        this.grid[x][y + i] = newShip;
-      } else {
-        overflow++;
-        this.grid[x][y - overflow] = newShip;
-      }
+      this.grid[x][y + i] = ship;
     }
   }
 
   placeShipHorizontal(x, y, shipLength) {
-    //pivot point of the ship will be the top end / left end before adjusting for grid overflow.
-    //check for any collisions
-    if (x >= this.size || y >= this.size) return;
-    if (x < 0 || y < 0) return;
+    //pivot point of the ship will be the top end / left end
+    if (y >= this.size || y < 0) return;
+    if (x + shipLength >= this.size || x < 0) return;
 
+    //check for collisions
     for (let i = 0; i < shipLength; i++) {
-      if (x + i < this.size) {
-        let currTile = this.grid[x + i][y];
-        if (currTile !== null) {
-          return;
-        }
-      }
+      if (this.grid[x + i][y] !== null) return;
     }
 
-    const newShip = new Ship(shipLength);
-    this.ships.push(newShip);
-    let overflow = 0;
+    let ship = new Ship(shipLength);
+    this.ships.push(ship);
     for (let i = 0; i < shipLength; i++) {
-      if (x + i < this.size) {
-        this.grid[x + i][y] = newShip;
-      } else {
-        overflow++;
-        this.grid[x - overflow][y] = newShip;
-      }
+      this.grid[x + i][y] = ship;
     }
   }
   receiveAttack(x, y) {

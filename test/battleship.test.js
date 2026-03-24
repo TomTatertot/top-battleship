@@ -38,10 +38,11 @@ describe("Gameboard placeShipVertical", () => {
   gameboard.placeShipVertical(x, y, shipLength);
   test("Function should do nothing when given negative coordinates or coordinates that are out of bounds.", () => {
     const before = structuredClone(gameboard);
-    gameboard.placeShipVertical(1, -1);
-    gameboard.placeShipVertical(-1, 1);
-    gameboard.placeShipVertical(1, 11);
-    gameboard.placeShipVertical(11, 1);
+    gameboard.placeShipVertical(1, -1, 3);
+    gameboard.placeShipVertical(-1, 1, 3);
+    gameboard.placeShipVertical(1, 11, 3);
+    gameboard.placeShipVertical(11, 1, 3);
+    console.log(gameboard);
     expect(before).toEqual(gameboard);
   });
   test("tile at (x,y) should be set to a ship object once a ship is placed", () => {
@@ -70,8 +71,10 @@ describe("Gameboard placeShipHorizontal", () => {
 
   test("Function should do nothing when given negative coordinates or coordinates that are out of bounds.", () => {
     const before = structuredClone(gameboard);
-    gameboard.placeShipHorizontal(-1, -1);
-    gameboard.placeShipHorizontal(11, 11);
+    gameboard.placeShipVertical(1, -1, 3);
+    gameboard.placeShipVertical(-1, 1, 3);
+    gameboard.placeShipVertical(1, 11, 3);
+    gameboard.placeShipVertical(11, 1, 3);
     expect(before).toEqual(gameboard);
   });
   test("tile at (x,y) should be set to a ship object once a ship is placed", () => {
@@ -90,52 +93,54 @@ describe("Gameboard placeShipHorizontal", () => {
   });
 });
 
-describe("Gameboard overflow", () => {
-  let x = 9;
-  let y = 9;
-  let shipLength = 3;
-  let overflow = 2;
-  describe("Vertical overflow", () => {
-    let gameboard = new Gameboard();
-    let grid = gameboard.grid;
-    gameboard.placeShipVertical(x, y, shipLength);
+// describe("Gameboard overflow", () => {
+//   let x = 9;
+//   let y = 9;
+//   let shipLength = 3;
+//   let overflow = 2;
+//   describe("Vertical overflow", () => {
+//     let gameboard = new Gameboard();
+//     let grid = gameboard.grid;
+//     gameboard.placeShipVertical(x, y, shipLength);
 
-    test("Ship is placed in correct tile coordinates after adjusting for overflow.", () => {
-      let tiles = [];
-      for (let i = 0; i < shipLength; i++) {
-        tiles.push(grid[x][y - overflow + i]);
-      }
-      expect(tiles).toEqual(expect.arrayOf(expect.any(Ship)));
-    });
-    test("Tile above ship is null", () => {
-      expect(grid[x][y - overflow - 1]).toBe(null);
-    });
-  });
+//     test("Ship is placed in correct tile coordinates after adjusting for overflow.", () => {
+//       let tiles = [];
+//       for (let i = 0; i < shipLength; i++) {
+//         tiles.push(grid[x][y - overflow + i]);
+//       }
+//       expect(tiles).toEqual(expect.arrayOf(expect.any(Ship)));
+//     });
+//     test("Tile above ship is null", () => {
+//       expect(grid[x][y - overflow - 1]).toBe(null);
+//     });
+//   });
 
-  describe("Horizontal overflow", () => {
-    let gameboard = new Gameboard();
-    let grid = gameboard.grid;
-    gameboard.placeShipHorizontal(x, y, shipLength);
+//   describe("Horizontal overflow", () => {
+//     let gameboard = new Gameboard();
+//     let grid = gameboard.grid;
+//     gameboard.placeShipHorizontal(x, y, shipLength);
 
-    test("Ship is placed in correct tile coordinates after adjusting for overflow.", () => {
-      let tiles = [];
-      for (let i = 0; i < shipLength; i++) {
-        tiles.push(grid[x - overflow + i][y]);
-      }
-      expect(tiles).toEqual(expect.arrayOf(expect.any(Ship)));
-    });
-    test("Tile left of ship is null", () => {
-      expect(grid[x - overflow - 1][y]).toBe(null);
-    });
-  });
-});
+//     test("Ship is placed in correct tile coordinates after adjusting for overflow.", () => {
+//       let tiles = [];
+//       for (let i = 0; i < shipLength; i++) {
+//         tiles.push(grid[x - overflow + i][y]);
+//       }
+//       expect(tiles).toEqual(expect.arrayOf(expect.any(Ship)));
+//     });
+//     test("Tile left of ship is null", () => {
+//       expect(grid[x - overflow - 1][y]).toBe(null);
+//     });
+//   });
+// });
 
 describe("Ship placement collisions", () => {
   let gameboard = new Gameboard();
   gameboard.placeShipHorizontal(1, 1, 3);
+  gameboard.placeShipHorizontal(6, 8, 3);
   test("placeShipHorizontal() does nothing if ship would collide with another ship.", () => {
     const before = structuredClone(gameboard);
     gameboard.placeShipHorizontal(0, 1, 3);
+    gameboard.placeShipHorizontal(9, 8, 3);
     expect(before).toEqual(gameboard);
   });
   test("placeShipVertical() does nothing if ship would collide with another ship.", () => {
@@ -182,9 +187,9 @@ describe("Gameboard gameOver()", () => {
   });
   test("True if all ships on the board are sunk", () => {
     let ships = gameboard.ships;
-    ships.forEach(ship => {
+    ships.forEach((ship) => {
       ship.numHits = ship.length;
-    })
+    });
     expect(gameboard.gameOver()).toBe(true);
   });
 });
