@@ -70,6 +70,13 @@ class Gameboard {
       }
     }
   }
+  receiveAttack(x,y){ 
+    let tile = this.grid[x][y];
+    if (tile !== null)
+      tile.hit();
+    else
+      this.missedCoordinates.push([x,y]);
 }
 
+}
 export { Gameboard };

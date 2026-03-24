@@ -145,3 +145,21 @@ describe("Ship placement collisions", () => {
     expect(before).toEqual(gameboard);
   })
 })
+
+describe("Gameboard receiveAttack()", ()=> {
+  let gameboard = new Gameboard();
+  let grid = gameboard.grid;  
+  gameboard.placeShipHorizontal(1,1,3);     
+  test("Sends hit function to the correct ship", ()=> {
+    gameboard.receiveAttack(1,1);
+    let ship = grid[1][1];
+    expect(ship.numHits).toBe(1);
+  })
+  test("Records coordinates of missed shot", () => {
+    gameboard.receiveAttack(3,3);
+    let misses = gameboard.missedCoordinates;
+    expect(misses.some(coordinates => {
+      return coordinates[0] === 3 && coordinates[1] === 3;
+    })).toBe(true);
+  })
+})
