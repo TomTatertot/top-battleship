@@ -36,7 +36,15 @@ describe("Gameboard placeShipVertical", () => {
   let y = 1;
   let shipLength = 3;
   gameboard.placeShipVertical(x, y, shipLength);
-
+  test("Function should do nothing when given negative coordinates or coordinates that are out of bounds.", ()=> {
+    const before = structuredClone(gameboard);
+    gameboard.placeShipVertical(1, -1)
+    gameboard.placeShipVertical(-1, 1)
+    gameboard.placeShipVertical(1, 11)
+    gameboard.placeShipVertical(11,1);
+    expect(before).toEqual(gameboard);
+    console.log(before.ad === gameboard);
+  })
   test("tile at (x,y) should be set to a ship object once a ship is placed", () => {
     expect(grid[x][y]).toBeInstanceOf(Ship);
   });
@@ -61,6 +69,12 @@ describe("Gameboard placeShipHorizontal", () => {
   let shipLength = 3;
   gameboard.placeShipHorizontal(x, y, shipLength);
 
+  test("Function should do nothing when given negative coordinates or coordinates that are out of bounds.", ()=> {
+    const before = structuredClone(gameboard);
+    gameboard.placeShipHorizontal(-1, -1);
+    gameboard.placeShipHorizontal(11,11);
+    expect(before).toEqual(gameboard);
+  })
   test("tile at (x,y) should be set to a ship object once a ship is placed", () => {
     expect(grid[x][y]).toBeInstanceOf(Ship);
   });
@@ -116,3 +130,18 @@ describe("Gameboard overflow", () => {
     });
   });
 });
+
+describe("Ship placement collisions", () => {
+  let gameboard = new Gameboard();
+  gameboard.placeShipHorizontal(1, 1, 3);
+  test("placeShipHorizontal() does nothing if ship would collide with another ship.", ()=> {
+    const before = structuredClone(gameboard);
+    gameboard.placeShipHorizontal(0,1,3);
+    expect(before).toEqual(gameboard);
+  })
+  test("placeShipVertical() does nothing if ship would collide with another ship.", ()=> {
+    const before = structuredClone(gameboard);
+    gameboard.placeShipVertical(1,0,3);
+    expect(before).toEqual(gameboard);
+  })
+})
