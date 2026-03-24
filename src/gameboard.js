@@ -5,6 +5,7 @@ class Gameboard {
   constructor() {
     this.size = 10;
     this.grid = this.#constructGrid(this.size);
+    this.ships = [];
     this.missedCoordinates = [];
   }
 
@@ -13,19 +14,16 @@ class Gameboard {
     for (let i = 0; i < gridArray.length; i++) {
       gridArray[i] = new Array(size).fill(null);
     }
-    // const charCode = 65;
-    // for (let i = 0; i < size; i++){
-    //   for(let j = 0; j < size; j++){
-    //     // let tileCharacter = String.fromCharCode(charCode + j)
-    //     gridArray[i][j] = null;
-    //   }
-    // }
     return gridArray;
   }
 
   placeShipVertical(x, y, shipLength) {
     //pivot point of the ship will be the top end / left end before adjusting for grid overflow.
     //check for any collisions
+    if (x >= this.size || y >= this.size) return;
+
+    if (x < 0 || y < 0) return;
+
     for (let i = 0; i < shipLength; i++) {
       if (y + i < this.size) {
         let currTile = this.grid[x][y + i];
@@ -36,6 +34,7 @@ class Gameboard {
     }
 
     const newShip = new Ship(shipLength);
+    this.ships.push(newShip);
     let overflow = 0;
     for (let i = 0; i < shipLength; i++) {
       if (y + i < this.size) {
@@ -50,6 +49,9 @@ class Gameboard {
   placeShipHorizontal(x, y, shipLength) {
     //pivot point of the ship will be the top end / left end before adjusting for grid overflow.
     //check for any collisions
+    if (x >= this.size || y >= this.size) return;
+    if (x < 0 || y < 0) return;
+
     for (let i = 0; i < shipLength; i++) {
       if (x + i < this.size) {
         let currTile = this.grid[x + i][y];
@@ -60,6 +62,7 @@ class Gameboard {
     }
 
     const newShip = new Ship(shipLength);
+    this.ships.push(newShip);
     let overflow = 0;
     for (let i = 0; i < shipLength; i++) {
       if (x + i < this.size) {
@@ -70,13 +73,18 @@ class Gameboard {
       }
     }
   }
-  receiveAttack(x,y){ 
+  receiveAttack(x, y) {
     let tile = this.grid[x][y];
-    if (tile !== null)
-      tile.hit();
-    else
-      this.missedCoordinates.push([x,y]);
-}
+    if (tile !== null) tile.hit();
+    else this.missedCoordinates.push([x, y]);
+  }
 
+  gameOver() {
+    if (this.ships.some((ship) => !ship.isSunk())) {
+      return false;
+    }
+
+    return true;
+  }
 }
 export { Gameboard };
