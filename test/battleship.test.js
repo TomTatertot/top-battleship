@@ -165,7 +165,7 @@ describe("Gameboard receiveAttack()", () => {
   });
   test("Records missed shots", () => {
     gameboard.receiveAttack(3, 3);
-    let misses = gameboard.missedCoordinates;
+    let misses = gameboard.missedAttacks();
     expect(
       misses.some((coordinates) => {
         return coordinates[0] === 3 && coordinates[1] === 3;

@@ -6,7 +6,6 @@ class Gameboard {
     this.size = 10;
     this.grid = this.#constructGrid();
     this.ships = [];
-    this.missedCoordinates = [];
   }
 
   #constructGrid() {
@@ -60,11 +59,9 @@ class Gameboard {
     let ship = tile.ship;
 
     if (tile.hit) return;
+    tile.hit = true;
     if (ship !== null) {
       ship.hit();
-      tile.hit = true;
-    } else {
-      this.missedCoordinates.push([x, y]);
     }
   }
 
@@ -74,6 +71,17 @@ class Gameboard {
     }
 
     return true;
+  }
+
+  missedAttacks() {
+    let missedCoordinates = [];
+    for (let i = 0; i < this.size; i++) {
+      for (let j = 0; j < this.size; j++) {
+        let tile = this.grid[i][j];
+        if (tile.ship === null && tile.hit) missedCoordinates.push([i, j]);
+      }
+    }
+    return missedCoordinates;
   }
 }
 export { Gameboard };
