@@ -25,7 +25,7 @@ describe("Gameboard class", () => {
   let tile = gameboard.grid[2][9];
 
   test("tile.ship (2,9) initially equals null", () => {
-    expect(tile).toBe(null);
+    expect(tile.ship).toBe(null);
   });
 });
 
@@ -42,20 +42,19 @@ describe("Gameboard placeShipVertical", () => {
     gameboard.placeShipVertical(-1, 1, 3);
     gameboard.placeShipVertical(1, 11, 3);
     gameboard.placeShipVertical(11, 1, 3);
-    console.log(gameboard);
     expect(before).toEqual(gameboard);
   });
   test("tile at (x,y) should be set to a ship object once a ship is placed", () => {
-    expect(grid[x][y]).toBeInstanceOf(Ship);
+    expect(grid[x][y].ship).toBeInstanceOf(Ship);
   });
   test("both ends of ship should be null", () => {
-    expect(grid[x][y - 1]).toBe(null);
-    expect(grid[x][y + shipLength]).toBe(null);
+    expect(grid[x][y - 1].ship).toBe(null);
+    expect(grid[x][y + shipLength].ship).toBe(null);
   });
   test("corresponding tiles are set to Ship object", () => {
     let tiles = [];
     for (let i = 0; i < shipLength; i++) {
-      tiles.push(grid[x][y + i]);
+      tiles.push(grid[x][y + i].ship);
     }
     expect(tiles).toEqual(expect.arrayOf(expect.any(Ship)));
   });
@@ -78,16 +77,16 @@ describe("Gameboard placeShipHorizontal", () => {
     expect(before).toEqual(gameboard);
   });
   test("tile at (x,y) should be set to a ship object once a ship is placed", () => {
-    expect(grid[x][y]).toBeInstanceOf(Ship);
+    expect(grid[x][y].ship).toBeInstanceOf(Ship);
   });
   test("both ends of ship should be null", () => {
-    expect(grid[x - 1][y]).toBe(null);
-    expect(grid[x + shipLength][y]).toBe(null);
+    expect(grid[x - 1][y].ship).toBe(null);
+    expect(grid[x + shipLength][y].ship).toBe(null);
   });
   test("corresponding tiles are set to Ship object", () => {
     let tiles = [];
     for (let i = 0; i < shipLength; i++) {
-      tiles.push(grid[x + i][y]);
+      tiles.push(grid[x + i][y].ship);
     }
     expect(tiles).toEqual(expect.arrayOf(expect.any(Ship)));
   });
@@ -156,12 +155,12 @@ describe("Gameboard receiveAttack()", () => {
   gameboard.placeShipHorizontal(1, 1, 3);
   test("Hits the correct ship", () => {
     gameboard.receiveAttack(1, 1);
-    let ship = grid[1][1];
+    let ship = grid[1][1].ship;
     expect(ship.numHits).toBe(1);
   });
   test("Cannot hit the same position twice", () => {
     gameboard.receiveAttack(1, 1);
-    let ship = grid[1][1];
+    let ship = grid[1][1].ship;
     expect(ship.numHits).toBe(1);
   });
   test("Records missed shots", () => {

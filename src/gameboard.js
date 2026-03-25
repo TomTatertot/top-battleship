@@ -1,18 +1,23 @@
 import { Ship } from "./ship";
-// import { Tile } from "./tile";
+import { Tile } from "./tile";
 
 class Gameboard {
   constructor() {
     this.size = 10;
-    this.grid = this.#constructGrid(this.size);
+    this.grid = this.#constructGrid();
     this.ships = [];
     this.missedCoordinates = [];
   }
 
-  #constructGrid(size) {
-    const gridArray = new Array(size);
+  #constructGrid() {
+    let gridArray = new Array(this.size);
+    for (let i = 0; i < this.size; i++) {
+      gridArray[i] = new Array(this.size);
+    }
     for (let i = 0; i < gridArray.length; i++) {
-      gridArray[i] = new Array(size).fill(null);
+      for (let j = 0; j < gridArray.length; j++) {
+        gridArray[i][j] = new Tile();
+      }
     }
     return gridArray;
   }
@@ -24,14 +29,13 @@ class Gameboard {
 
     //check for collisions
     for (let i = 0; i < shipLength; i++) {
-      if (this.grid[x][y + i] !== null) return;
+      if (this.grid[x][y + i].ship !== null) return;
     }
 
-    console.log(x, y);
     let ship = new Ship(shipLength);
     this.ships.push(ship);
     for (let i = 0; i < shipLength; i++) {
-      this.grid[x][y + i] = ship;
+      this.grid[x][y + i].ship = ship;
     }
   }
 
@@ -42,19 +46,26 @@ class Gameboard {
 
     //check for collisions
     for (let i = 0; i < shipLength; i++) {
-      if (this.grid[x + i][y] !== null) return;
+      if (this.grid[x + i][y].ship !== null) return;
     }
 
     let ship = new Ship(shipLength);
     this.ships.push(ship);
     for (let i = 0; i < shipLength; i++) {
-      this.grid[x + i][y] = ship;
+      this.grid[x + i][y].ship = ship;
     }
   }
   receiveAttack(x, y) {
     let tile = this.grid[x][y];
-    if (tile !== null) tile.hit();
-    else this.missedCoordinates.push([x, y]);
+    let ship = tile.ship;
+
+    if (tile.hit) return;
+    if (ship !== null) {
+      ship.hit();
+      tile.hit = true;
+    } else {
+      this.missedCoordinates.push([x, y]);
+    }
   }
 
   gameOver() {
