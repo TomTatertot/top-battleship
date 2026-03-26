@@ -1,1 +1,14 @@
 /* styles.css */
+
+table {
+  border-collapse: collapse;
+  margin: 1rem;
+}
+table td {
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid gray;
+}
+th[scope = "row"]{
+  padding-right: 0.5rem;
+}
