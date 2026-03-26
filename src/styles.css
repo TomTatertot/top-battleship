@@ -5,10 +5,24 @@ table {
   margin: 1rem;
 }
 table td {
-  width: 2rem;
-  height: 2rem;
+  width: 2.5rem;
+  height: 2.5rem;
   border: 1px solid gray;
+}
+table th {
+  font-weight:normal;
 }
 th[scope = "row"]{
   padding-right: 0.5rem;
 }
+
+td.occupied {
+  border:2px solid blue;
+}
+
+.battlefields {
+  display: flex;
+  justify-content: space-evenly;
+}
+
+

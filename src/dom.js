@@ -1,10 +1,12 @@
-function createPlayerBoard(size) {
+function createPlayerBoard(player) {
+  let gameboard = player.board;
+  const boardSize = gameboard.size;
   const table = document.createElement("table");
   const header = document.createElement("thead");
   const body = document.createElement("tbody");
   const headerRow = document.createElement("tr");
 
-  for (let i = 0; i <= size; i++) {
+  for (let i = 0; i <= boardSize; i++) {
     const headerLetter = `${String.fromCharCode(64 + i)}`;
     const columnHeader = document.createElement("th");
     columnHeader.scope = "col";
@@ -12,29 +14,55 @@ function createPlayerBoard(size) {
       columnHeader.textContent = headerLetter;
     }
 
-    console.log(columnHeader);
     headerRow.append(columnHeader);
   }
-  console.log(headerRow);
 
-  for (let i = 0; i < size; i++) {
+  for (let i = 0; i < boardSize; i++) {
     const row = document.createElement("tr");
+    //create row header
     const rowHeader = document.createElement("th");
     rowHeader.scope = "row";
-    rowHeader.textContent = `${i}`;
+    rowHeader.textContent = `${i + 1}`;
     row.append(rowHeader);
-    for (let j = 0; j < size; j++) {
-      const cell = document.createElement("td");
-      cell.dataset.dataY = i;
-      cell.dataset.dataJ = j;
-      row.append(cell);
+
+    //create row cells
+    for (let j = 0; j < boardSize; j++) {
+      let tile = gameboard.grid[i][j];
+      const tileHTML = document.createElement("td");
+      tileHTML.dataset.x = j;
+      tileHTML.dataset.y = i;
+      if (player.name === "one" && tile.ship !== null) {
+        tileHTML.classList.add("occupied");
+      }
+      if (tile.hit) {
+        if (tile.ship !== null) {
+          tileHTML.classList.add("hit");
+        } else {
+          tileHTML.classList.add("miss");
+        }
+      }
+      row.append(tileHTML);
     }
     body.append(row);
   }
-
   header.append(headerRow);
   table.append(header, body);
   return table;
 }
 
-export { createPlayerBoard };
+function updateBoard(gameboard) {
+  // let grid = gameboard.grid;
+  // for (let i = 0; i < grid.length; i++) {
+  //   for (let j = 0; j < grid.length; j++) {
+  //     let ship = grid[i][j].ship;
+  //     if (ship !== null) {
+  //       let tileHTML = document.querySelector(
+  //         `td[data-x="${i}"][data-y="${j}"]`,
+  //       );
+  //       tileHTML.classList.add("occupied");
+  //     }
+  //   }
+  // }
+}
+
+export { createPlayerBoard, updateBoard };

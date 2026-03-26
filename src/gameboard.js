@@ -24,7 +24,7 @@ class Gameboard {
   placeShipVertical(x, y, shipLength) {
     //pivot point of the ship will be the top end / left end
     if (x >= this.size || x < 0) return;
-    if (y + shipLength >= this.size || y < 0) return;
+    if (y + shipLength > this.size || y < 0) return;
 
     //check for collisions
     for (let i = 0; i < shipLength; i++) {
@@ -41,7 +41,7 @@ class Gameboard {
   placeShipHorizontal(x, y, shipLength) {
     //pivot point of the ship will be the top end / left end
     if (y >= this.size || y < 0) return;
-    if (x + shipLength >= this.size || x < 0) return;
+    if (x + shipLength > this.size || x < 0) return;
 
     //check for collisions
     for (let i = 0; i < shipLength; i++) {
