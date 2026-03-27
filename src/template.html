@@ -4,15 +4,29 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap"
+      rel="stylesheet"
+    />
   </head>
   <body>
-    <header></header>
+    <header>
+      <img class="logo" src="../images/logo.webp" alt="">
+      <div class="game-status">Your turn</div>
+    </header>
     <div class="content">
       <main>
         <div class="battlefields">
-          <div class="battlefield-one">
+          <div class="battlefield-container">
+            <div class="battlefield-name">Your Fleet</div>
+            <div class="battlefield battlefield-one"></div>
           </div>
-          <div class="battlefield-two"></div>
+          <div class="battlefield-container">
+            <div class="battlefield-name enemy">Enemy Fleet</div>
+            <div class="battlefield battlefield-two"></div>
+          </div>
         </div>
       </main>
     </div>

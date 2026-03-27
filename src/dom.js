@@ -29,8 +29,8 @@ function createPlayerBoard(player) {
     for (let j = 0; j < boardSize; j++) {
       let tile = gameboard.grid[i][j];
       const tileHTML = document.createElement("td");
-      tileHTML.dataset.x = j;
       tileHTML.dataset.y = i;
+      tileHTML.dataset.x = j;
       if (player.name === "one" && tile.ship !== null) {
         tileHTML.classList.add("occupied");
       }

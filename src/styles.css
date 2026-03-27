@@ -1,13 +1,58 @@
 /* styles.css */
+:root{
+--primary-text-color: rgb(0, 238, 255);  
+--secondary-text-color: white;
+--enemy-text-color: rgb(184, 55, 55);
+--background-color: linear-gradient(#010220, #02031de3);
 
+}
+header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100vw;
+}
+
+header .game-status{
+  color: var(--secondary-text-color);
+}
+header .logo {
+  width: 25rem;
+}
+header .game-status{
+  font-size: 1.5rem;
+  /* position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw; */
+  /* text-align: center; */
+  box-sizing: border-box;
+  margin: 1rem 0;
+}
+
+body {
+  /* background-color: rgb(63, 86, 160); */
+  background: var(--background-color);
+  height: 100vh;
+  font-family:Roboto, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  /* width: 100%; */
+}
 table {
-  border-collapse: collapse;
+  /* border-collapse: collapse; */
   margin: 1rem;
+  color: var(--primary-text-color);
 }
 table td {
   width: 2.5rem;
   height: 2.5rem;
-  border: 1px solid gray;
+  border: 1px solid rgba(4, 6, 44, 0.5);
+  background-color: rgba(23, 40, 136, 0.911);
+  cursor: pointer;
+  border-radius: 10%;
+}
+.battlefield-two table td:hover{
+  /* border: 2px solid red; */
+  background-color: rgba(255, 0, 0, 0.226);
 }
 table th {
   font-weight:normal;
@@ -17,12 +62,34 @@ th[scope = "row"]{
 }
 
 td.occupied {
-  border:2px solid blue;
+  background:rgb(3, 202, 252);
+}
+td.miss{
+  background: rgba(128, 128, 128, 0.411);
+}
+td.hit{
+  background:rgba(255, 0, 0, 0.897);
 }
 
 .battlefields {
   display: flex;
   justify-content: space-evenly;
+}
+
+.battlefield-name {
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.battlefield-name.enemy {
+  color: var(--enemy-text-color);
+}
+
+.battlefield-container{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: var(--primary-text-color);
 }
 
 

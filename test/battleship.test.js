@@ -33,7 +33,7 @@ describe("Gameboard placeShipVertical", () => {
   let gameboard = new Gameboard();
   let grid = gameboard.grid;
   let x = 1;
-  let y = 1;
+  let y = 2;
   let shipLength = 3;
   gameboard.placeShipVertical(x, y, shipLength);
   test("Function should do nothing when given negative coordinates or coordinates that are out of bounds.", () => {
@@ -45,16 +45,16 @@ describe("Gameboard placeShipVertical", () => {
     expect(before).toEqual(gameboard);
   });
   test("tile at (x,y) should be set to a ship object once a ship is placed", () => {
-    expect(grid[x][y].ship).toBeInstanceOf(Ship);
+    expect(grid[y][x].ship).toBeInstanceOf(Ship);
   });
   test("both ends of ship should be null", () => {
-    expect(grid[x][y - 1].ship).toBe(null);
-    expect(grid[x][y + shipLength].ship).toBe(null);
+    expect(grid[y-1][x].ship).toBe(null);
+    expect(grid[y + shipLength][x].ship).toBe(null);
   });
   test("corresponding tiles are set to Ship object", () => {
     let tiles = [];
     for (let i = 0; i < shipLength; i++) {
-      tiles.push(grid[x][y + i].ship);
+      tiles.push(grid[y + i][x].ship);
     }
     expect(tiles).toEqual(expect.arrayOf(expect.any(Ship)));
   });
@@ -64,7 +64,7 @@ describe("Gameboard placeShipHorizontal", () => {
   let gameboard = new Gameboard();
   let grid = gameboard.grid;
   let x = 1;
-  let y = 1;
+  let y = 2;
   let shipLength = 3;
   gameboard.placeShipHorizontal(x, y, shipLength);
 
@@ -77,16 +77,16 @@ describe("Gameboard placeShipHorizontal", () => {
     expect(before).toEqual(gameboard);
   });
   test("tile at (x,y) should be set to a ship object once a ship is placed", () => {
-    expect(grid[x][y].ship).toBeInstanceOf(Ship);
+    expect(grid[y][x].ship).toBeInstanceOf(Ship);
   });
   test("both ends of ship should be null", () => {
-    expect(grid[x - 1][y].ship).toBe(null);
-    expect(grid[x + shipLength][y].ship).toBe(null);
+    expect(grid[y][x-1].ship).toBe(null);
+    expect(grid[y][x + shipLength].ship).toBe(null);
   });
   test("corresponding tiles are set to Ship object", () => {
     let tiles = [];
     for (let i = 0; i < shipLength; i++) {
-      tiles.push(grid[x + i][y].ship);
+      tiles.push(grid[y][x + i].ship);
     }
     expect(tiles).toEqual(expect.arrayOf(expect.any(Ship)));
   });

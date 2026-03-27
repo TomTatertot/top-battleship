@@ -28,13 +28,13 @@ class Gameboard {
 
     //check for collisions
     for (let i = 0; i < shipLength; i++) {
-      if (this.grid[x][y + i].ship !== null) return;
+      if (this.grid[y+ i][x].ship !== null) return;
     }
 
     let ship = new Ship(shipLength);
     this.ships.push(ship);
     for (let i = 0; i < shipLength; i++) {
-      this.grid[x][y + i].ship = ship;
+      this.grid[y + i][x].ship = ship;
     }
   }
 
@@ -45,17 +45,17 @@ class Gameboard {
 
     //check for collisions
     for (let i = 0; i < shipLength; i++) {
-      if (this.grid[x + i][y].ship !== null) return;
+      if (this.grid[y][x + i].ship !== null) return;
     }
 
     let ship = new Ship(shipLength);
     this.ships.push(ship);
     for (let i = 0; i < shipLength; i++) {
-      this.grid[x + i][y].ship = ship;
+      this.grid[y][x + i].ship = ship;
     }
   }
   receiveAttack(x, y) {
-    let tile = this.grid[x][y];
+    let tile = this.grid[y][x];
     let ship = tile.ship;
 
     if (tile.hit) return;
