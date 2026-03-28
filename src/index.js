@@ -35,7 +35,7 @@ const gamemode = MODES.HARD_CPU;
 const playerOne = new Player("one");
 const playerTwo = new Player("two");
 let cpuLastHitPos = null;
-let cpuHitDirection = null;
+let cpuHitAxis = null;
 
 populateBoard(playerOne.board);
 populateBoard(playerTwo.board);
@@ -50,6 +50,7 @@ battlefieldTwoHTML.addEventListener("click", (e) => {
 
   let x = tileHTML.dataset.x;
   let y = tileHTML.dataset.y;
+  if (gameboardTwo.grid[y][x].hit) return;
   gameboardTwo.receiveAttack(x, y);
   tableTwoHTML.replaceWith(createPlayerBoard(playerTwo));
 
@@ -85,41 +86,58 @@ function hardCPUTurn() {
   let gridOne = gameboardOne.grid;
   let validPosition;
   //if ship misses, strike another random tile
-  console.log(cpuLastHitPos);
   if (cpuLastHitPos === null) {
-    validPosition = getValidRandomPosition(gridOne);
+    validPosition = getRandomPos(gridOne);
     let x = validPosition[0];
     let y = validPosition[1];
     gameboardOne.receiveAttack(x, y);
-    if (gridOne[y][x].ship !== null)
+    if (gridOne[y][x].ship !== null) {
       cpuLastHitPos = [x, y];
+    }
     return;
   } // if last hit was a ship, strike the next available adjacent tile
-  console.log(cpuLastHitPos);
 
-  validPosition = getValidAdjacentPosition(
-    cpuLastHitPos[0],
-    cpuLastHitPos[1],
-    gridOne,
-  );
+  let lastX = cpuLastHitPos[0];
+  let lastY = cpuLastHitPos[1];
+  if (!cpuHitAxis) validPosition = getAdjacentPos(lastX, lastY, gridOne);
+  else {
+    if (cpuHitAxis === "X") {
+      validPosition = getAdjacentHorizontalPos(
+        cpuLastHitPos[0],
+        cpuLastHitPos[1],
+        gridOne,
+      );
+    } else {
+      validPosition = getAdjacentVerticalPos(
+        cpuLastHitPos[0],
+        cpuLastHitPos[1],
+        gridOne,
+      );
+    }
+  }
   if (validPosition) {
     let x = validPosition[0];
-    let y = validPosition[1]; 
+    let y = validPosition[1];
     gameboardOne.receiveAttack(x, y);
     //if a ship is struck, assign it to last position hit.
     if (gridOne[y][x].ship !== null) {
+      cpuHitAxis = getRelativeAxis(x, y, cpuLastHitPos[0], cpuLastHitPos[1]);
       cpuLastHitPos = [x, y];
     }
   } else {
     //if all adjacent tiles have been struck and no ship has been hit, hit a random position
-    validPosition = getValidRandomPosition(gridOne);
+    validPosition = getRandomPos(gridOne);
     let x = validPosition[0];
     let y = validPosition[1];
-    gameboardOne.receiveAttack(x, y);
-    cpuLastHitPos = null;
+    gameboardOne.receiveAttack(x, y); 
+    cpuHitAxis = null;
+    if (gridOne[y][x].ship !== null)
+      cpuLastHitPos = [x,y];
+    else
+      cpuLastHitPos = null;
   }
 }
-function getValidAdjacentPosition(x, y, grid) {
+function getAdjacentPos(x, y, grid) {
   const adjacentTiles = [
     [x - 1, y],
     [x + 1, y],
@@ -135,24 +153,75 @@ function getValidAdjacentPosition(x, y, grid) {
     if (grid[posY][posX].hit) return false;
     else return true;
   });
-  console.log(validPosition);
   return validPosition;
 }
 
-//returns the direction of x2,y2 relative to x,y.
-function getRelativeDirection(x,y,x2,y2){
-  if (x2 - x > 0)
-    return "W";
-  else if (x2 - x < 0)
-    return "E"
-  else if (y2 - y < 0)
-    return "S"
-  else 
-    return "N";
+function getAdjacentHorizontalPos(x, y, grid) {
+  //keep going left of (x,y) until you reach a tile that hasnt been hit. if you reach an empty tile that has been hit,
+  //check right and repeat.
+  //if both sides have an empty tile that has been hit, return undefined
+  let leftChecked = false;
+  let currX = x;
+  while (!leftChecked && currX >= 0) {
+    let currTile = grid[y][currX];
+    if (!currTile.hit) {
+      return [currX, y];
+    } else if (currTile.hit && currTile.ship === null) {
+      leftChecked = true;
+    }
+    currX--;
+  }
+  currX = x;
+  let rightChecked = false;
+  while (!rightChecked && currX < grid.length) {
+    let currTile = grid[y][currX];
+    if (!currTile.hit) {
+      return [currX, y];
+    } else if (currTile.hit && currTile.ship === null) {
+      rightChecked = true;
+    }
+    currX++;
+  }
+  return;
+}
+
+function getAdjacentVerticalPos(x, y, grid) {
+  //keep going left of (x,y) until you reach a tile that hasnt been hit. if you reach an empty tile that has been hit,
+  //check right and repeat.
+  //if both sides have an empty tile that has been hit, return undefined
+  let aboveChecked = false;
+  let currY = y;
+  while (!aboveChecked && currY >= 0) {
+    let currTile = grid[currY][x];
+    if (!currTile.hit) {
+      return [x, currY];
+    } else if (currTile.hit && currTile.ship === null) {
+      aboveChecked = true;
+    }
+    currY--;
+  }
+  currY = y;
+  let belowChecked = false;
+  while (!belowChecked && currY < grid.length) {
+    let currTile = grid[currY][x];
+    if (!currTile.hit) {
+      return [x, currY];
+    } else if (currTile.hit && currTile.ship === null) {
+      belowChecked = true;
+    }
+    currY++;
+  }
+  return;
+}
+
+//returns the axis that tiles (x,y) and (x2,y2) are both on
+function getRelativeAxis(x, y, x2, y2) {
+  if (x2 - x != 0) return "X";
+  else if (y2 - y != 0) return "Y";
 }
 
 //returns a random valid tile
-function getValidRandomPosition(grid) {
+function getRandomPos(grid) {
   let invalidAttack = true;
   while (invalidAttack) {
     let x = getRandomInt(grid.length - 1);
@@ -174,16 +243,31 @@ function startGame(player1, player2) {
 }
 
 function populateBoard(gameboard) {
-  gameboard.placeShipHorizontal(5, 0, 1);
+  // gameboard.placeShipHorizontal(5, 0, 1);
+  // gameboard.placeShipVertical(7, 0, 2);
+  // gameboard.placeShipVertical(1, 1, 4);
+  // gameboard.placeShipVertical(4, 2, 2);
+  // gameboard.placeShipHorizontal(8, 3, 1);
+  // gameboard.placeShipHorizontal(7, 5, 3);
+  // gameboard.placeShipHorizontal(0, 6, 1);
+  // gameboard.placeShipHorizontal(3, 7, 3);
+  // gameboard.placeShipVertical(7, 9, 1);
+  // gameboard.placeShipVertical(9, 8, 2);
+
+  gameboard.placeShipVertical(5, 0, 1);
   gameboard.placeShipVertical(7, 0, 2);
   gameboard.placeShipVertical(1, 1, 4);
   gameboard.placeShipVertical(4, 2, 2);
-  gameboard.placeShipHorizontal(8, 3, 1);
-  gameboard.placeShipHorizontal(7, 5, 3);
-  gameboard.placeShipHorizontal(0, 6, 1);
-  gameboard.placeShipHorizontal(3, 7, 3);
+  gameboard.placeShipVertical(8, 3, 1);
+  gameboard.placeShipVertical(7, 5, 3);
+  gameboard.placeShipVertical(0, 6, 1);
+  gameboard.placeShipVertical(3, 7, 3);
   gameboard.placeShipVertical(7, 9, 1);
   gameboard.placeShipVertical(9, 8, 2);
+  gameboard.placeShipVertical(5, 5, 2);
+  gameboard.placeShipVertical(5, 8, 1);
+
+  
 }
 
 function getRandomInt(max) {
