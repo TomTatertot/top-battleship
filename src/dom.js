@@ -1,3 +1,5 @@
+
+import hitIcon from "../images/blast.png"
 function createPlayerBoard(player) {
   let gameboard = player.board;
   const boardSize = gameboard.size;
@@ -13,7 +15,7 @@ function createPlayerBoard(player) {
     if (i > 0) {
       columnHeader.textContent = headerLetter;
     }
-
+    
     headerRow.append(columnHeader);
   }
 
@@ -36,10 +38,14 @@ function createPlayerBoard(player) {
       }
       if (tile.hit) {
         if (tile.ship !== null) {
+          // const img = document.createElement("img");
+          // img.src = hitIcon;
           tileHTML.classList.add("hit");
+          tileHTML.innerHTML = `<img class= "hit-icon" src="${hitIcon}" alt="Ship hit icon">`;
         } else {
+          tileHTML.innerHTML = `<div class="miss-icon"></div>`;
           tileHTML.classList.add("miss");
-        }
+        } 
       }
       row.append(tileHTML);
     }

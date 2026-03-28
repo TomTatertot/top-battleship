@@ -3,7 +3,9 @@
 --primary-text-color: rgb(0, 238, 255);  
 --secondary-text-color: white;
 --enemy-text-color: rgb(184, 55, 55);
+--primary-color: #01022077;
 --background-color: linear-gradient(#010220, #02031de3);
+--secondary-color: rgb(0, 238, 255);  
 
 }
 header {
@@ -45,11 +47,21 @@ table {
 table td {
   width: 2.5rem;
   height: 2.5rem;
-  border: 1px solid rgba(4, 6, 44, 0.5);
+  border: 1px solid var(--primary-color);
   background-color: rgba(23, 40, 136, 0.911);
   cursor: pointer;
   border-radius: 10%;
+  text-align: center;
 }
+
+.miss-icon {
+  width: 0.6rem;         
+  height: 0.6rem;        
+  background-color: var(--secondary-color);
+  border-radius: 50%;  
+  display:inline-block
+}
+
 .battlefield-two table td:hover{
   /* border: 2px solid red; */
   background-color: rgba(255, 0, 0, 0.226);
@@ -62,13 +74,13 @@ th[scope = "row"]{
 }
 
 td.occupied {
-  background:rgb(3, 202, 252);
+  background:rgba(18, 159, 194, 0.966);
 }
 td.miss{
-  background: rgba(128, 128, 128, 0.411);
+  border: 2px solid var(--secondary-color);
 }
 td.hit{
-  background:rgba(255, 0, 0, 0.897);
+  border:2px solid rgb(209, 68, 68);
 }
 
 .battlefields {
