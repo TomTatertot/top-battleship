@@ -1,5 +1,4 @@
-
-import hitIcon from "../images/blast.png"
+import hitIcon from "../images/blast.png";
 function createPlayerBoard(player) {
   let gameboard = player.board;
   const boardSize = gameboard.size;
@@ -15,7 +14,7 @@ function createPlayerBoard(player) {
     if (i > 0) {
       columnHeader.textContent = headerLetter;
     }
-    
+
     headerRow.append(columnHeader);
   }
 
@@ -45,7 +44,7 @@ function createPlayerBoard(player) {
         } else {
           tileHTML.innerHTML = `<div class="miss-icon"></div>`;
           tileHTML.classList.add("miss");
-        } 
+        }
       }
       row.append(tileHTML);
     }
@@ -54,6 +53,19 @@ function createPlayerBoard(player) {
   header.append(headerRow);
   table.append(header, body);
   return table;
+}
+
+function clearMain(){
+  const main = document.querySelector("main");
+  main.innerHTML = '';
+}
+
+function createStartScreen(){
+
+}
+
+function createPlacementScreen(){
+
 }
 
 function updateBoard(gameboard) {
@@ -71,4 +83,24 @@ function updateBoard(gameboard) {
   // }
 }
 
-export { createPlayerBoard, updateBoard };
+function createShip(shipSize) {
+  const ship = document.createElement("div");
+  ship.classList.add("ship");
+  ship.draggable = true;
+  
+  for (let i = 0; i < shipSize; i++) {
+    const shipTile = document.createElement("div");
+    shipTile.classList.add("ship-tile");
+
+    let shipTileWidthREM = 2.5;
+    let shipFlexGapPixels = 2; 
+    let shipWidth = (shipSize * shipTileWidthREM * 16) + ((shipSize-1) * shipFlexGapPixels);
+
+    ship.dataset.size = shipSize;
+    ship.style.width = shipWidth + "px";
+
+    ship.append(shipTile);
+  }
+  return ship;
+}
+export { createPlayerBoard, updateBoard, createShip };

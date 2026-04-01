@@ -2,40 +2,60 @@
 import "./styles.css";
 import "./reset.css";
 import { Player } from "./player";
-import { createPlayerBoard } from "./dom";
+import { createPlayerBoard, createShip } from "./dom";
 
 const MODES = {
   TWO_PLAYER: "TWO_PLAYER",
   EASY_CPU: "EASY_CPU",
   HARD_CPU: "HARD_CPU",
 };
-//initialize
-// const MODES = {
-//   TWO_PLAYER: {
-//     name: "Player Two",
-//     isCPU: false,
-//   },
-//   DUMB_CPU: {
-//     label: "CPU",
-//     isCPU: true,
-//     takeTurn: () => cpuTurn("dumb")
-//   },
-//   HARD_CPU: {
-//     label: "CPU",
-//     isCPU: true,
-//     takeTurn: () => cpuTurn("smart")
-//   }
 
-// }
-const main = document.querySelector(".main");
+const main = document.querySelector("main");
+const fleetHTML = document.querySelector(".fleet");
 const battlefieldOneHTML = document.querySelector(".battlefield-one");
 const battlefieldTwoHTML = document.querySelector(".battlefield-two");
 
+const shipLengths = [5, 4, 4, 3, 2];
 const gamemode = MODES.HARD_CPU;
 const playerOne = new Player("one");
 const playerTwo = new Player("two");
 let cpuLastHitPos = null;
 let cpuHitAxis = null;
+
+shipLengths.forEach((shipLength) => {
+  fleetHTML.append(createShip(shipLength));
+});
+
+const ships = document.querySelectorAll(".ship");
+const battlefields = document.querySelectorAll(".battlefield-container");
+let offsetX;
+let offsetY;
+ships.forEach((ship) => {
+  ship.addEventListener("dragstart", (e) => {
+    let rect = e.target.getBoundingClientRect();
+    offsetX = e.clientX - rect.left;
+    offsetY = e.clientY - rect.top;
+    ship.classList.add("dragging");
+  });
+  ship.addEventListener("drag", (e) => {
+    const target = document.elementFromPoint(
+      e.clientX - offsetX,
+      e.clientY - offsetY,
+    );
+    if (target === null || target.tagName != "TD") return;
+    console.log(target);
+  });
+
+  ship.addEventListener("dragend", () => {
+    ship.classList.remove("dragging");
+  });
+});
+
+// battlefields.forEach((battlefield) => {
+//   battlefield.addEventListener("dragover", (e) => {
+//     e.preventDefault();
+//   });
+// });
 
 populateBoard(playerOne.board);
 populateBoard(playerTwo.board);
@@ -69,16 +89,8 @@ battlefieldTwoHTML.addEventListener("click", (e) => {
 //dumb CPU strikes a random valid position.
 function easyCPUTurn() {
   let gameboardOne = playerOne.board;
-  let invalidAttack = true;
-  while (invalidAttack) {
-    let x = getRandomInt(gameboardOne.size - 1);
-    let y = getRandomInt(gameboardOne.size - 1);
-    let tile = gameboardOne.grid[y][x];
-    if (tile.hit === false) {
-      invalidAttack = false;
-      gameboardOne.receiveAttack(x, y);
-    }
-  }
+  let randomPos = getRandomPos(gameboardOne.grid);
+  gameboardOne.receiveAttack(randomPos[0], randomPos[1]);
 }
 
 function hardCPUTurn() {
@@ -102,17 +114,9 @@ function hardCPUTurn() {
   if (!cpuHitAxis) validPosition = getAdjacentPos(lastX, lastY, gridOne);
   else {
     if (cpuHitAxis === "X") {
-      validPosition = getAdjacentHorizontalPos(
-        cpuLastHitPos[0],
-        cpuLastHitPos[1],
-        gridOne,
-      );
+      validPosition = getAdjacentHorizontalPos(lastX, lastY, gridOne);
     } else {
-      validPosition = getAdjacentVerticalPos(
-        cpuLastHitPos[0],
-        cpuLastHitPos[1],
-        gridOne,
-      );
+      validPosition = getAdjacentVerticalPos(lastX, lastY, gridOne);
     }
   }
   if (validPosition) {
@@ -121,7 +125,7 @@ function hardCPUTurn() {
     gameboardOne.receiveAttack(x, y);
     //if a ship is struck, assign it to last position hit.
     if (gridOne[y][x].ship !== null) {
-      cpuHitAxis = getRelativeAxis(x, y, cpuLastHitPos[0], cpuLastHitPos[1]);
+      cpuHitAxis = getRelativeAxis(x, y, lastX, lastY);
       cpuLastHitPos = [x, y];
     }
   } else {
@@ -129,12 +133,10 @@ function hardCPUTurn() {
     validPosition = getRandomPos(gridOne);
     let x = validPosition[0];
     let y = validPosition[1];
-    gameboardOne.receiveAttack(x, y); 
+    gameboardOne.receiveAttack(x, y);
     cpuHitAxis = null;
-    if (gridOne[y][x].ship !== null)
-      cpuLastHitPos = [x,y];
-    else
-      cpuLastHitPos = null;
+    if (gridOne[y][x].ship !== null) cpuLastHitPos = [x, y];
+    else cpuLastHitPos = null;
   }
 }
 function getAdjacentPos(x, y, grid) {
@@ -186,8 +188,8 @@ function getAdjacentHorizontalPos(x, y, grid) {
 }
 
 function getAdjacentVerticalPos(x, y, grid) {
-  //keep going left of (x,y) until you reach a tile that hasnt been hit. if you reach an empty tile that has been hit,
-  //check right and repeat.
+  //iterate through tiles above (x,y) until you reach a tile that hasnt been hit. if you reach an empty hit tile,
+  //check below (x,y) and repeat.
   //if both sides have an empty tile that has been hit, return undefined
   let aboveChecked = false;
   let currY = y;
@@ -239,7 +241,7 @@ function startGame(player1, player2) {
   //enable clicking on Player Two's board
   //disable clicking on player One's board
   battlefieldOneHTML.append(createPlayerBoard(player1));
-  battlefieldTwoHTML.append(createPlayerBoard(player2));
+  // battlefieldTwoHTML.append(createPlayerBoard(player2));
 }
 
 function populateBoard(gameboard) {
@@ -253,21 +255,6 @@ function populateBoard(gameboard) {
   // gameboard.placeShipHorizontal(3, 7, 3);
   // gameboard.placeShipVertical(7, 9, 1);
   // gameboard.placeShipVertical(9, 8, 2);
-
-  gameboard.placeShipVertical(5, 0, 1);
-  gameboard.placeShipVertical(7, 0, 2);
-  gameboard.placeShipVertical(1, 1, 4);
-  gameboard.placeShipVertical(4, 2, 2);
-  gameboard.placeShipVertical(8, 3, 1);
-  gameboard.placeShipVertical(7, 5, 3);
-  gameboard.placeShipVertical(0, 6, 1);
-  gameboard.placeShipVertical(3, 7, 3);
-  gameboard.placeShipVertical(7, 9, 1);
-  gameboard.placeShipVertical(9, 8, 2);
-  gameboard.placeShipVertical(5, 5, 2);
-  gameboard.placeShipVertical(5, 8, 1);
-
-  
 }
 
 function getRandomInt(max) {
