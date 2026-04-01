@@ -30,6 +30,7 @@ const ships = document.querySelectorAll(".ship");
 const battlefields = document.querySelectorAll(".battlefield-container");
 let offsetX;
 let offsetY;
+let axis = "X";
 ships.forEach((ship) => {
   ship.addEventListener("dragstart", (e) => {
     let rect = e.target.getBoundingClientRect();
@@ -38,24 +39,45 @@ ships.forEach((ship) => {
     ship.classList.add("dragging");
   });
   ship.addEventListener("drag", (e) => {
-    const target = document.elementFromPoint(
+    const ship = e.target;
+    const tile = document.elementFromPoint(
       e.clientX - offsetX,
       e.clientY - offsetY,
     );
-    if (target === null || target.tagName != "TD") return;
-    console.log(target);
+    if (tile === null || tile.tagName != "TD") return;
+    let x = tile.dataset.x;
+    let y = tile.dataset.y;
+    let shipSize = ship.dataset.size;
+    highlightPlacement(x, y, shipSize);
   });
 
-  ship.addEventListener("dragend", () => {
+  ship.addEventListener("dragend", (e) => {
+    const ship = e.target;
+    const tile = document.elementFromPoint(
+      e.clientX - offsetX,
+      e.clientY - offsetY,
+    );
+    if (tile === null || tile.tagName != "TD") return;
+    let x = parseInt(tile.dataset.x);
+    let y = parseInt(tile.dataset.y);
+    let shipSize = ship.dataset.size;
+    highlightPlacement(x, y, shipSize, axis);
     ship.classList.remove("dragging");
   });
 });
 
-// battlefields.forEach((battlefield) => {
-//   battlefield.addEventListener("dragover", (e) => {
-//     e.preventDefault();
-//   });
-// });
+battlefields.forEach((battlefield) => {
+  battlefield.addEventListener("dragover", (e) => {
+    // const target = document.elementFromPoint(
+    //   e.clientX - offsetX,
+    //   e.clientY - offsetY,
+    // );
+    // if (target === null || target.tagName != "TD") return;
+    // console.log(target);
+    // console.log(e);
+    // e.preventDefault();
+  });
+});
 
 populateBoard(playerOne.board);
 populateBoard(playerTwo.board);
@@ -260,3 +282,19 @@ function populateBoard(gameboard) {
 function getRandomInt(max) {
   return Math.floor(Math.random() * max);
 }
+
+function highlightPlacement(x, y, shipSize, axis) {
+  let currX = x;
+  let currY = y;
+  for (let i = 0; i < shipSize; i++) {
+    if (axis === "X") {
+      currX = x + i;
+    } else currY = y + i;
+    let currTile = document.querySelector(
+      `td[data-x="${currX}"][data-y="${currY}"]`,
+    );
+    currTile.classList.add("highl")
+  }
+}
+
+function removeHighlight() {}
