@@ -141,4 +141,12 @@ td.hit{
   color: var(--primary-text-color);
 }
 
+.highlight-valid {
+  background-color: rgba(26, 129, 26, 0.774);;
+}
+
+.highlight-invalid {
+  background-color: rgba(88, 18, 47, 0.774);;
+}
+
 

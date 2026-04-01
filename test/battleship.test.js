@@ -35,7 +35,7 @@ describe("Gameboard placement validity", () => {
     expect(gameboard.isHorizontalPlacementValid(-1,-1, 1)).toBe(false);
     expect(gameboard.isHorizontalPlacementValid(1,-1, 1)).toBe(false);
     expect(gameboard.isHorizontalPlacementValid(-1,-1, 1)).toBe(false);
-    expect(gameboard.isHorizontalPlacementValid(7, 1, 3)).toBe(false);
+    expect(gameboard.isHorizontalPlacementValid(8, 1, 3)).toBe(false);
   })
   test("isHorizontalPlacementValid() should return true for valid coordinates", ()=> {
     expect(gameboard.isHorizontalPlacementValid(0,0, 1)).toBe(true);
@@ -47,7 +47,7 @@ describe("Gameboard placement validity", () => {
     expect(gameboard.isVerticalPlacementValid(-1,-1, 1)).toBe(false);
     expect(gameboard.isVerticalPlacementValid(1,-1, 1)).toBe(false);
     expect(gameboard.isVerticalPlacementValid(-1,-1, 1)).toBe(false);
-    expect(gameboard.isVerticalPlacementValid(1, 7, 3)).toBe(false);
+    expect(gameboard.isVerticalPlacementValid(1, 8, 3)).toBe(false);
   })
   test("isHorizontalPlacementValid() should return true for valid coordinates", ()=> {
     expect(gameboard.isVerticalPlacementValid(0,0, 1)).toBe(true);

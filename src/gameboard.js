@@ -46,7 +46,7 @@ class Gameboard {
   isVerticalPlacementValid(x, y, shipLength) {
     //check out of bounds
     if (x >= this.size || x < 0) return false;
-    if (y + shipLength >= this.size || y < 0) return false;
+    if (y + shipLength > this.size || y < 0) return false;
 
     //check for collisions
     for (let i = 0; i < shipLength; i++) {
@@ -57,9 +57,10 @@ class Gameboard {
   }
 
   isHorizontalPlacementValid(x, y, shipLength) {
+    console.log(x,y);
     if (y >= this.size || y < 0) return false;
-    if (x + shipLength >= this.size || x < 0) return false;
-
+    if (x + shipLength > this.size || x < 0) return false;
+    console.log(x,y, shipLength);
     //check for collisions
     for (let i = 0; i < shipLength; i++) {
       if (this.grid[y][x + i].ship !== null) return false;

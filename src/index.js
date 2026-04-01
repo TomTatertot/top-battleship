@@ -30,25 +30,35 @@ const ships = document.querySelectorAll(".ship");
 const battlefields = document.querySelectorAll(".battlefield-container");
 let offsetX;
 let offsetY;
+let lastTile = null;
 let axis = "X";
 ships.forEach((ship) => {
   ship.addEventListener("dragstart", (e) => {
     let rect = e.target.getBoundingClientRect();
-    offsetX = e.clientX - rect.left;
-    offsetY = e.clientY - rect.top;
+    let shipSize = parseInt(e.target.dataset.size);
+    offsetX = e.clientX - rect.left - rect.width/2/shipSize;
+    offsetY = e.clientY - rect.top - rect.height/2;
     ship.classList.add("dragging");
   });
+
   ship.addEventListener("drag", (e) => {
     const ship = e.target;
     const tile = document.elementFromPoint(
       e.clientX - offsetX,
       e.clientY - offsetY,
     );
+    removeHighlights();
     if (tile === null || tile.tagName != "TD") return;
-    let x = tile.dataset.x;
-    let y = tile.dataset.y;
-    let shipSize = ship.dataset.size;
-    highlightPlacement(x, y, shipSize);
+    // if (tile !== lastTile) {
+    //   lastTile = tile;
+    //   removeHighlights();
+    // }
+    // console.log(tile);
+    let x = parseInt(tile.dataset.x);
+    let y = parseInt(tile.dataset.y);
+    let shipSize = parseInt(ship.dataset.size);
+    let valid = playerOne.board.isHorizontalPlacementValid(x,y,shipSize);
+    highlightHorizontalPlacement(x, y, shipSize, valid);
   });
 
   ship.addEventListener("dragend", (e) => {
@@ -61,22 +71,13 @@ ships.forEach((ship) => {
     let x = parseInt(tile.dataset.x);
     let y = parseInt(tile.dataset.y);
     let shipSize = ship.dataset.size;
-    highlightPlacement(x, y, shipSize, axis);
+    // highlightPlacement(x, y, shipSize);
     ship.classList.remove("dragging");
   });
 });
 
 battlefields.forEach((battlefield) => {
-  battlefield.addEventListener("dragover", (e) => {
-    // const target = document.elementFromPoint(
-    //   e.clientX - offsetX,
-    //   e.clientY - offsetY,
-    // );
-    // if (target === null || target.tagName != "TD") return;
-    // console.log(target);
-    // console.log(e);
-    // e.preventDefault();
-  });
+  battlefield.addEventListener("dragover", (e) => {});
 });
 
 populateBoard(playerOne.board);
@@ -283,18 +284,48 @@ function getRandomInt(max) {
   return Math.floor(Math.random() * max);
 }
 
-function highlightPlacement(x, y, shipSize, axis) {
-  let currX = x;
-  let currY = y;
+function highlightHorizontalPlacement(x, y, shipSize, placementValid) {
   for (let i = 0; i < shipSize; i++) {
-    if (axis === "X") {
-      currX = x + i;
-    } else currY = y + i;
     let currTile = document.querySelector(
-      `td[data-x="${currX}"][data-y="${currY}"]`,
+      `td[data-x="${x + i}"][data-y="${y}"]`,
     );
-    currTile.classList.add("highl")
+    if (currTile === null)
+      return;
+
+    currTile.classList.add("highlight");
+
+    if (placementValid) {
+      currTile.classList.add("highlight-valid");
+    } else {
+      currTile.classList.add("highlight-invalid");
+    }
   }
 }
 
-function removeHighlight() {}
+function highlightVerticalPlacement(x, y, shipSize, placementValid) {
+  for (let i = 0; i < shipSize; i++) {
+    let currTile = document.querySelector(
+      `td[data-x="${x}"][data-y="${y + i}"]`,
+    );
+
+    if (currTile === null)
+      return;
+
+    currTile.classList.add("highlight");
+    
+    if (placementValid) {
+      currTile.classList.add("highlight-valid");
+    } else {
+      currTile.classList.add("highlight-invalid");
+    }
+  }
+}
+
+function removeHighlights() {
+  const tiles = [...document.querySelectorAll(".highlight")];
+  tiles.forEach((tile) => {
+    tile.classList.remove("highlight");
+    tile.classList.remove("highlight-invalid");
+    tile.classList.remove("highlight-valid");
+  });
+}
