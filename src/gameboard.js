@@ -34,6 +34,8 @@ class Gameboard {
 
   placeShipHorizontal(x, y, shipLength) {
     //pivot point of the ship will be the top end / left end
+    console.log(x,y, shipLength);
+    console.log(this.isHorizontalPlacementValid(x, y, shipLength))
     if (!this.isHorizontalPlacementValid(x, y, shipLength)) return;
 
     let ship = new Ship(shipLength);
@@ -57,10 +59,8 @@ class Gameboard {
   }
 
   isHorizontalPlacementValid(x, y, shipLength) {
-    console.log(x,y);
     if (y >= this.size || y < 0) return false;
     if (x + shipLength > this.size || x < 0) return false;
-    console.log(x,y, shipLength);
     //check for collisions
     for (let i = 0; i < shipLength; i++) {
       if (this.grid[y][x + i].ship !== null) return false;

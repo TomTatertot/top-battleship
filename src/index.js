@@ -19,6 +19,7 @@ const shipLengths = [5, 4, 4, 3, 2];
 const gamemode = MODES.HARD_CPU;
 const playerOne = new Player("one");
 const playerTwo = new Player("two");
+const currentPlayerTurn = playerOne;
 let cpuLastHitPos = null;
 let cpuHitAxis = null;
 
@@ -30,14 +31,40 @@ const ships = document.querySelectorAll(".ship");
 const battlefields = document.querySelectorAll(".battlefield-container");
 let offsetX;
 let offsetY;
-let lastTile = null;
-let axis = "X";
+const PLACEMENT_MODE = {
+  HORIZONTAL: {
+    id: "HORIZONTAL",
+    isValid: function(x,y,shipSize, gameboard){
+      return gameboard.isHorizontalPlacementValid(x, y, shipSize)
+    },
+    highlightPlacement: function (x, y, shipSize, valid) {
+      highlightHorizontalPlacement(x, y, shipSize, valid);
+    },
+    placeShip: function (x, y, shipSize, gameboard) {
+      gameboard.placeShipHorizontal(x, y, shipSize);
+    },
+  },
+  VERTICAL: {
+    id: "VERTICAL",
+    isValid: function(x,y,shipSize, gameboard){
+      return gameboard.isVerticalPlacementValid(x, y, shipSize)
+    },
+    highlightPlacement: function (x, y, shipSize, valid) {
+      highlightVerticalPlacement(x, y, shipSize, valid);
+    },
+    placeShip: function (x, y, shipSize, gameboard) {
+      gameboard.placeShipVertical(x, y, shipSize);
+    },
+  },
+};
+let placementMode = PLACEMENT_MODE.VERTICAL;
 ships.forEach((ship) => {
   ship.addEventListener("dragstart", (e) => {
-    let rect = e.target.getBoundingClientRect();
-    let shipSize = parseInt(e.target.dataset.size);
-    offsetX = e.clientX - rect.left - rect.width/2/shipSize;
-    offsetY = e.clientY - rect.top - rect.height/2;
+    let ship = e.target;
+    let rect = ship.getBoundingClientRect();
+    let shipSize = parseInt(ship.dataset.size);
+    offsetX = e.clientX - rect.left - rect.width / 2 / shipSize;
+    offsetY = e.clientY - rect.top - rect.height / 2;
     ship.classList.add("dragging");
   });
 
@@ -49,20 +76,17 @@ ships.forEach((ship) => {
     );
     removeHighlights();
     if (tile === null || tile.tagName != "TD") return;
-    // if (tile !== lastTile) {
-    //   lastTile = tile;
-    //   removeHighlights();
-    // }
-    // console.log(tile);
+
     let x = parseInt(tile.dataset.x);
     let y = parseInt(tile.dataset.y);
     let shipSize = parseInt(ship.dataset.size);
-    let valid = playerOne.board.isHorizontalPlacementValid(x,y,shipSize);
-    highlightHorizontalPlacement(x, y, shipSize, valid);
+    let valid = placementMode.isValid(x,y,shipSize, currentPlayerTurn.board);
+    placementMode.highlightPlacement(x,y,shipSize, valid);
   });
 
   ship.addEventListener("dragend", (e) => {
     const ship = e.target;
+    ship.classList.remove("dragging");
     const tile = document.elementFromPoint(
       e.clientX - offsetX,
       e.clientY - offsetY,
@@ -70,9 +94,16 @@ ships.forEach((ship) => {
     if (tile === null || tile.tagName != "TD") return;
     let x = parseInt(tile.dataset.x);
     let y = parseInt(tile.dataset.y);
-    let shipSize = ship.dataset.size;
-    // highlightPlacement(x, y, shipSize);
-    ship.classList.remove("dragging");
+    let shipSize = parseInt(ship.dataset.size);
+    let table = document.querySelector(`.battlefield-${currentPlayerTurn.name} table`);
+    console.log(table);
+    let valid = placementMode.isValid(x,y,shipSize,currentPlayerTurn.board);
+    placementMode.placeShip(x, y, shipSize, currentPlayerTurn.board); 
+
+    if (valid){
+      ship.style.visibility = 'hidden';
+    }
+    table.replaceWith(createPlayerBoard(currentPlayerTurn));
   });
 });
 
@@ -289,8 +320,7 @@ function highlightHorizontalPlacement(x, y, shipSize, placementValid) {
     let currTile = document.querySelector(
       `td[data-x="${x + i}"][data-y="${y}"]`,
     );
-    if (currTile === null)
-      return;
+    if (currTile === null) return;
 
     currTile.classList.add("highlight");
 
@@ -308,11 +338,10 @@ function highlightVerticalPlacement(x, y, shipSize, placementValid) {
       `td[data-x="${x}"][data-y="${y + i}"]`,
     );
 
-    if (currTile === null)
-      return;
+    if (currTile === null) return;
 
     currTile.classList.add("highlight");
-    
+
     if (placementValid) {
       currTile.classList.add("highlight-valid");
     } else {
