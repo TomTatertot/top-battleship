@@ -2,7 +2,13 @@
 import "./styles.css";
 import "./reset.css";
 import { Player } from "./player";
-import { createPlayerBoard, createShip } from "./dom";
+import {
+  createPlayerBoard,
+  createShip,
+  highlightHorizontalPlacement,
+  highlightVerticalPlacement,
+  removeHighlights,
+} from "./dom";
 
 const MODES = {
   TWO_PLAYER: "TWO_PLAYER",
@@ -14,6 +20,7 @@ const main = document.querySelector("main");
 const fleetHTML = document.querySelector(".fleet");
 const battlefieldOneHTML = document.querySelector(".battlefield-one");
 const battlefieldTwoHTML = document.querySelector(".battlefield-two");
+const randomizeButton = document.querySelector(".random");
 
 const shipLengths = [5, 4, 4, 3, 2];
 const gamemode = MODES.HARD_CPU;
@@ -23,9 +30,13 @@ const currentPlayerTurn = playerOne;
 let cpuLastHitPos = null;
 let cpuHitAxis = null;
 
-shipLengths.forEach((shipLength) => {
-  fleetHTML.append(createShip(shipLength));
-});
+// shipLengths.forEach((shipLength) => {
+//   fleetHTML.append("afterbegin",createShip(shipLength));
+// });
+
+for (let i = shipLengths.length - 1; i >= 0; i--) {
+  fleetHTML.insertAdjacentElement("afterbegin", createShip(shipLengths[i]));
+}
 
 const ships = document.querySelectorAll(".ship");
 const battlefields = document.querySelectorAll(".battlefield-container");
@@ -34,8 +45,8 @@ let offsetY;
 const PLACEMENT_MODE = {
   HORIZONTAL: {
     id: "HORIZONTAL",
-    isValid: function(x,y,shipSize, gameboard){
-      return gameboard.isHorizontalPlacementValid(x, y, shipSize)
+    isValid: function (x, y, shipSize, gameboard) {
+      return gameboard.isHorizontalPlacementValid(x, y, shipSize);
     },
     highlightPlacement: function (x, y, shipSize, valid) {
       highlightHorizontalPlacement(x, y, shipSize, valid);
@@ -46,8 +57,8 @@ const PLACEMENT_MODE = {
   },
   VERTICAL: {
     id: "VERTICAL",
-    isValid: function(x,y,shipSize, gameboard){
-      return gameboard.isVerticalPlacementValid(x, y, shipSize)
+    isValid: function (x, y, shipSize, gameboard) {
+      return gameboard.isVerticalPlacementValid(x, y, shipSize);
     },
     highlightPlacement: function (x, y, shipSize, valid) {
       highlightVerticalPlacement(x, y, shipSize, valid);
@@ -57,7 +68,7 @@ const PLACEMENT_MODE = {
     },
   },
 };
-let placementMode = PLACEMENT_MODE.VERTICAL;
+let placementMode = PLACEMENT_MODE.HORIZONTAL;
 ships.forEach((ship) => {
   ship.addEventListener("dragstart", (e) => {
     let ship = e.target;
@@ -70,18 +81,23 @@ ships.forEach((ship) => {
 
   ship.addEventListener("drag", (e) => {
     const ship = e.target;
-    const tile = document.elementFromPoint(
-      e.clientX - offsetX,
-      e.clientY - offsetY,
-    );
+    let tile;
+    if (placementMode.id === "VERTICAL") {
+      tile = document.elementFromPoint(e.clientX, e.clientY);
+    } else {
+      tile = document.elementFromPoint(
+        e.clientX - offsetX,
+        e.clientY - offsetY,
+      );
+    }
     removeHighlights();
     if (tile === null || tile.tagName != "TD") return;
 
     let x = parseInt(tile.dataset.x);
     let y = parseInt(tile.dataset.y);
     let shipSize = parseInt(ship.dataset.size);
-    let valid = placementMode.isValid(x,y,shipSize, currentPlayerTurn.board);
-    placementMode.highlightPlacement(x,y,shipSize, valid);
+    let valid = placementMode.isValid(x, y, shipSize, currentPlayerTurn.board);
+    placementMode.highlightPlacement(x, y, shipSize, valid);
   });
 
   ship.addEventListener("dragend", (e) => {
@@ -95,20 +111,49 @@ ships.forEach((ship) => {
     let x = parseInt(tile.dataset.x);
     let y = parseInt(tile.dataset.y);
     let shipSize = parseInt(ship.dataset.size);
-    let table = document.querySelector(`.battlefield-${currentPlayerTurn.name} table`);
+    let table = document.querySelector(
+      `.battlefield-${currentPlayerTurn.name} table`,
+    );
     console.log(table);
-    let valid = placementMode.isValid(x,y,shipSize,currentPlayerTurn.board);
-    placementMode.placeShip(x, y, shipSize, currentPlayerTurn.board); 
+    let valid = placementMode.isValid(x, y, shipSize, currentPlayerTurn.board);
+    placementMode.placeShip(x, y, shipSize, currentPlayerTurn.board);
 
-    if (valid){
-      ship.style.visibility = 'hidden';
+    if (valid) {
+      ship.style.visibility = "hidden";
     }
     table.replaceWith(createPlayerBoard(currentPlayerTurn));
   });
 });
 
-battlefields.forEach((battlefield) => {
-  battlefield.addEventListener("dragover", (e) => {});
+randomizeButton.addEventListener("click", () => {
+  const board = currentPlayerTurn.board;
+  board.clear();
+  let tableHTML = document.querySelector(
+    `.battlefield-${currentPlayerTurn.name} table`,
+  );
+
+  for (let i = 0; i < shipLengths.length; i++) {
+    let placementMode;
+    let randomNum = getRandomInt(2);
+    let invalidPlacement = true;
+    if (randomNum === 0) placementMode = PLACEMENT_MODE.HORIZONTAL;
+    else placementMode = PLACEMENT_MODE.VERTICAL;
+
+    while (invalidPlacement) {
+      let x = getRandomInt(board.size);
+      let y = getRandomInt(board.size);
+      if (placementMode.isValid(x, y, shipLengths[i], board)) {
+        placementMode.placeShip(x, y, shipLengths[i], board);
+        invalidPlacement = false;
+      }
+    }
+  }
+
+  ships.forEach(ship => {
+    ship.style.visibility = 'hidden';
+  })
+
+  tableHTML.replaceWith(createPlayerBoard(currentPlayerTurn));
 });
 
 populateBoard(playerOne.board);
@@ -313,48 +358,4 @@ function populateBoard(gameboard) {
 
 function getRandomInt(max) {
   return Math.floor(Math.random() * max);
-}
-
-function highlightHorizontalPlacement(x, y, shipSize, placementValid) {
-  for (let i = 0; i < shipSize; i++) {
-    let currTile = document.querySelector(
-      `td[data-x="${x + i}"][data-y="${y}"]`,
-    );
-    if (currTile === null) return;
-
-    currTile.classList.add("highlight");
-
-    if (placementValid) {
-      currTile.classList.add("highlight-valid");
-    } else {
-      currTile.classList.add("highlight-invalid");
-    }
-  }
-}
-
-function highlightVerticalPlacement(x, y, shipSize, placementValid) {
-  for (let i = 0; i < shipSize; i++) {
-    let currTile = document.querySelector(
-      `td[data-x="${x}"][data-y="${y + i}"]`,
-    );
-
-    if (currTile === null) return;
-
-    currTile.classList.add("highlight");
-
-    if (placementValid) {
-      currTile.classList.add("highlight-valid");
-    } else {
-      currTile.classList.add("highlight-invalid");
-    }
-  }
-}
-
-function removeHighlights() {
-  const tiles = [...document.querySelectorAll(".highlight")];
-  tiles.forEach((tile) => {
-    tile.classList.remove("highlight");
-    tile.classList.remove("highlight-invalid");
-    tile.classList.remove("highlight-valid");
-  });
 }

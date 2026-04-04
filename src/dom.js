@@ -55,46 +55,28 @@ function createPlayerBoard(player) {
   return table;
 }
 
-function clearMain(){
+function clearMain() {
   const main = document.querySelector("main");
-  main.innerHTML = '';
+  main.innerHTML = "";
 }
 
-function createStartScreen(){
+function createStartScreen() {}
 
-}
-
-function createPlacementScreen(){
-
-}
-
-function updateBoard(gameboard) {
-  // let grid = gameboard.grid;
-  // for (let i = 0; i < grid.length; i++) {
-  //   for (let j = 0; j < grid.length; j++) {
-  //     let ship = grid[i][j].ship;
-  //     if (ship !== null) {
-  //       let tileHTML = document.querySelector(
-  //         `td[data-x="${i}"][data-y="${j}"]`,
-  //       );
-  //       tileHTML.classList.add("occupied");
-  //     }
-  //   }
-  // }
-}
+function createPlacementScreen() {}
 
 function createShip(shipSize) {
   const ship = document.createElement("div");
   ship.classList.add("ship");
   ship.draggable = true;
-  
+
   for (let i = 0; i < shipSize; i++) {
     const shipTile = document.createElement("div");
     shipTile.classList.add("ship-tile");
 
     let shipTileWidthREM = 2.5;
-    let shipFlexGapPixels = 2; 
-    let shipWidth = (shipSize * shipTileWidthREM * 16) + ((shipSize-1) * shipFlexGapPixels);
+    let shipFlexGapPixels = 2;
+    let shipWidth =
+      shipSize * shipTileWidthREM * 16 + (shipSize - 1) * shipFlexGapPixels;
 
     ship.dataset.size = shipSize;
     ship.style.width = shipWidth + "px";
@@ -103,4 +85,55 @@ function createShip(shipSize) {
   }
   return ship;
 }
-export { createPlayerBoard, updateBoard, createShip };
+
+function highlightHorizontalPlacement(x, y, shipSize, placementValid) {
+  for (let i = 0; i < shipSize; i++) {
+    let currTile = document.querySelector(
+      `td[data-x="${x + i}"][data-y="${y}"]`,
+    );
+    if (currTile === null) return;
+
+    currTile.classList.add("highlight");
+
+    if (placementValid) {
+      currTile.classList.add("highlight-valid");
+    } else {
+      currTile.classList.add("highlight-invalid");
+    }
+  }
+}
+
+function highlightVerticalPlacement(x, y, shipSize, placementValid) {
+  for (let i = 0; i < shipSize; i++) {
+    let currTile = document.querySelector(
+      `td[data-x="${x}"][data-y="${y + i}"]`,
+    );
+
+    if (currTile === null) return;
+
+    currTile.classList.add("highlight");
+
+    if (placementValid) {
+      currTile.classList.add("highlight-valid");
+    } else {
+      currTile.classList.add("highlight-invalid");
+    }
+  }
+}
+
+function removeHighlights() {
+  const tiles = [...document.querySelectorAll(".highlight")];
+  tiles.forEach((tile) => {
+    tile.classList.remove("highlight");
+    tile.classList.remove("highlight-invalid");
+    tile.classList.remove("highlight-valid");
+  });
+}
+
+export {
+  createPlayerBoard,
+  createShip,
+  highlightHorizontalPlacement,
+  highlightVerticalPlacement,
+  removeHighlights,
+};

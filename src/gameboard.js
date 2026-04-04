@@ -34,8 +34,6 @@ class Gameboard {
 
   placeShipHorizontal(x, y, shipLength) {
     //pivot point of the ship will be the top end / left end
-    console.log(x,y, shipLength);
-    console.log(this.isHorizontalPlacementValid(x, y, shipLength))
     if (!this.isHorizontalPlacementValid(x, y, shipLength)) return;
 
     let ship = new Ship(shipLength);
@@ -52,9 +50,18 @@ class Gameboard {
 
     //check for collisions
     for (let i = 0; i < shipLength; i++) {
-      if (this.grid[y + i][x].ship !== null) return false;
+      if (this.grid[y + i][x].ship !== null) 
+        return false;
+
+      const adjacentPositions = this.getAdjacentCoordinates(x, y + i);
+      for (let j = 0; j < adjacentPositions.length; j++) {
+        let pos = adjacentPositions[j];
+        let adjTile = this.grid[pos[1]][pos[0]];
+        if (adjTile.ship !== null && adjTile.ship !== this.grid[y + i][x].ship)
+          return false;
+      }
     }
-    //check for adjacent ships
+
     return true;
   }
 
@@ -63,7 +70,16 @@ class Gameboard {
     if (x + shipLength > this.size || x < 0) return false;
     //check for collisions
     for (let i = 0; i < shipLength; i++) {
-      if (this.grid[y][x + i].ship !== null) return false;
+      if (this.grid[y][x + i].ship !== null) 
+        return false;
+      
+      const adjacentPositions = this.getAdjacentCoordinates(x + i, y);
+      for (let j = 0; j < adjacentPositions.length; j++) {
+        let pos = adjacentPositions[j];
+        let adjTile = this.grid[pos[1]][pos[0]];
+        if (adjTile.ship !== null && adjTile.ship !== this.grid[y][x + i].ship)
+          return false;
+      }
     }
 
     return true;
@@ -97,6 +113,30 @@ class Gameboard {
       }
     }
     return missedCoordinates;
+  }
+
+  getAdjacentCoordinates(x, y) {
+    const adjacentCoordinates = [
+      [x - 1, y],
+      [x - 1, y - 1],
+      [x, y - 1],
+      [x + 1, y - 1],
+      [x + 1, y],
+      [x + 1, y + 1],
+      [x, y + 1],
+      [x - 1, y + 1],
+    ];
+    const result = adjacentCoordinates.filter((pos) => {
+      if (pos[0] >= this.size || pos[0] < 0) return false;
+      else if (pos[1] >= this.size || pos[1] < 0) return false;
+      else return true;
+    });
+    console.log(result);
+    return result;
+  }
+
+  clear() {
+    this.grid = this.#constructGrid();
   }
 }
 export { Gameboard };
