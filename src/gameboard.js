@@ -136,6 +136,7 @@ class Gameboard {
 
   clear() {
     this.grid = this.#constructGrid();
+    this.ships = [];
   }
 }
 export { Gameboard };

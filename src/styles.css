@@ -46,6 +46,7 @@ body {
 }
 
 main {
+  height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -58,6 +59,7 @@ table {
 }
 table td {
   min-width: 2.5rem;
+  max-width: 2.5rem;
   height: 2.5rem;
   border: 1px solid var(--ship-border);
   background-color: rgba(18, 29, 88, 0.911);
@@ -93,6 +95,10 @@ td.miss{
 }
 td.hit{
   border:1px solid rgb(209, 68, 68);
+}
+
+td.sunk {
+  background-color: rgba(235, 38, 38, 0.877);;
 }
 
 .battlefield-placeship {

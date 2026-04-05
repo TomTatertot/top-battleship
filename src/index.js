@@ -5,6 +5,8 @@ import { Player } from "./player";
 import {
   createPlayerBoard,
   createShip,
+  createPlacementScreen,
+  createBattleScreen,
   highlightHorizontalPlacement,
   highlightVerticalPlacement,
   removeHighlights,
@@ -17,34 +19,17 @@ const MODES = {
 };
 
 const main = document.querySelector("main");
-const fleetHTML = document.querySelector(".fleet");
-const battlefieldOneHTML = document.querySelector(".battlefield-one");
-const battlefieldTwoHTML = document.querySelector(".battlefield-two");
-const randomizeButton = document.querySelector(".random");
-const rotateButton = document.querySelector(".rotate");
-const resetButton = document.querySelector(".reset");
-const confirmButton = document.querySelector(".confirm");
-
-const shipLengths = [5, 4, 4, 3, 2];
-const gamemode = MODES.HARD_CPU;
-const playerOne = new Player("one");
-const playerTwo = new Player("two");
-const currentPlayerTurn = playerOne;
+const shipLengths = [5, 4, 4, 3, 2, 1];
+const gamemode = MODES.TWO_PLAYER;
+let playerOne = new Player("one");
+let playerTwo = new Player("two");
+let currentPlayerTurn = playerOne;
+let nextPlayer = playerTwo;
 let cpuLastHitPos = null;
 let cpuHitAxis = null;
-
-// shipLengths.forEach((shipLength) => {
-//   fleetHTML.append("afterbegin",createShip(shipLength));
-// });
-
-for (let i = shipLengths.length - 1; i >= 0; i--) {
-  fleetHTML.insertAdjacentElement("afterbegin", createShip(shipLengths[i]));
-}
-
-const ships = document.querySelectorAll(".ship");
 const battlefields = document.querySelectorAll(".battlefield-container");
-let offsetX;
-let offsetY;
+let dragOffsetX;
+let dragOffsetY;
 const PLACEMENT_MODE = {
   HORIZONTAL: {
     id: "HORIZONTAL",
@@ -72,84 +57,126 @@ const PLACEMENT_MODE = {
   },
 };
 let placementMode = PLACEMENT_MODE.HORIZONTAL;
-ships.forEach((ship) => {
-  ship.addEventListener("dragstart", (e) => {
-    let ship = e.target;
-    let rect = ship.getBoundingClientRect();
-    let shipSize = parseInt(ship.dataset.size);
-    offsetX = e.clientX - rect.left - rect.width / 2 / shipSize;
-    offsetY = e.clientY - rect.top - rect.height / 2;
-    ship.classList.add("dragging");
-  });
 
-  ship.addEventListener("drag", (e) => {
-    const ship = e.target;
-    let tile;
-    if (placementMode.id === "VERTICAL") {
-      tile = document.elementFromPoint(e.clientX, e.clientY);
+startPlacement();
+// const confirmButton = document.querySelector(".confirm");
+// confirmButton.addEventListener(
+//   "click",
+//   () => {
+//     if (currentPlayerTurn.board.ships.length < shipLengths.length) return;
+//     onConfirmPlacement();
+//   },
+//   { once: true },
+// );
+
+function startPlacement() {
+  console.log(currentPlayerTurn);
+
+  main.innerHTML = "";
+  main.append(createPlacementScreen("Your fleet"));
+
+  const battlefield = document.querySelector(".battlefield");
+  battlefield.append(createPlayerBoard(currentPlayerTurn));
+
+  const fleetHTML = document.querySelector(".fleet");
+  const randomizeButton = document.querySelector(".random");
+  const rotateButton = document.querySelector(".rotate");
+  const resetButton = document.querySelector(".reset");
+  const confirmButton = document.querySelector(".confirm");
+
+  for (let i = shipLengths.length - 1; i >= 0; i--) {
+    fleetHTML.insertAdjacentElement("afterbegin", createShip(shipLengths[i]));
+  }
+  const ships = document.querySelectorAll(".ship");
+  ships.forEach((ship) => {
+    ship.addEventListener("dragstart", (event) => onDragStart(event));
+    ship.addEventListener("drag", (event) => onDrag(event));
+    ship.addEventListener("dragend", (event) => onDragEnd(event));
+  });
+  rotateButton.addEventListener("click", () => onRotate());
+  resetButton.addEventListener("click", () => onReset(ships));
+  randomizeButton.addEventListener("click", () => onRandomize(ships));
+  confirmButton.addEventListener("click", () => onConfirmPlacement());
+}
+
+function onConfirmPlacement() {
+  const numShips = currentPlayerTurn.board.ships.length;
+    if (numShips < shipLengths.length) return;
+    if (nextPlayer === playerOne) {
+      currentPlayerTurn = playerOne;
+      nextPlayer = playerTwo;
+      startBattle();
+    } else if (gamemode === MODES.TWO_PLAYER) {
+      currentPlayerTurn = playerTwo;
+      nextPlayer = playerOne;
+      startPlacement();
     } else {
-      tile = document.elementFromPoint(
-        e.clientX - offsetX,
-        e.clientY - offsetY,
-      );
+      startBattle();
     }
-    removeHighlights();
-    if (tile === null || tile.tagName != "TD") return;
+}
 
-    let x = parseInt(tile.dataset.x);
-    let y = parseInt(tile.dataset.y);
-    let shipSize = parseInt(ship.dataset.size);
-    let valid = placementMode.isValid(x, y, shipSize, currentPlayerTurn.board);
-    placementMode.highlightPlacement(x, y, shipSize, valid);
-  });
+function startBattle() {
+  console.log(playerOne.board.ships);
+  console.log(playerTwo.board.ships);
 
-  ship.addEventListener("dragend", (e) => {
-    const ship = e.target;
-    ship.classList.remove("dragging");
-    const tile = document.elementFromPoint(
-      e.clientX - offsetX,
-      e.clientY - offsetY,
-    );
-    if (tile === null || tile.tagName != "TD") return;
-    let x = parseInt(tile.dataset.x);
-    let y = parseInt(tile.dataset.y);
-    let shipSize = parseInt(ship.dataset.size);
-    let table = document.querySelector(
-      `.battlefield-${currentPlayerTurn.name} table`,
-    );
-    let valid = placementMode.isValid(x, y, shipSize, currentPlayerTurn.board);
-    placementMode.placeShip(x, y, shipSize, currentPlayerTurn.board);
+  main.innerHTML = "";
+  main.append(createBattleScreen());
+  const alliedFleetHTML = document.querySelector(".battlefield-one");
+  const enemyFleetHTML = document.querySelector(".battlefield-two");
+  alliedFleetHTML.append(createPlayerBoard(currentPlayerTurn));
+  enemyFleetHTML.append(createPlayerBoard(nextPlayer, true));
 
-    if (valid) {
-      ship.style.visibility = "hidden";
+  enemyFleetHTML.addEventListener("click", (e) => {
+    let enemyBoard = nextPlayer.board;
+    let alliedTableHTML = document.querySelector(".battlefield-one table");
+    let enemyTableHTML = document.querySelector(".battlefield-two table");
+    let tileHTML = e.target.closest("td");
+    if (!tileHTML) return;
+
+    let x = tileHTML.dataset.x;
+    let y = tileHTML.dataset.y;
+    const hitTile = enemyBoard.grid[y][x];
+    if (hitTile.hit) return;
+    enemyBoard.receiveAttack(x, y);
+    if (hitTile.ship !== null) {
+      enemyTableHTML.replaceWith(createPlayerBoard(nextPlayer, true));
+      return;
     }
-    table.replaceWith(createPlayerBoard(currentPlayerTurn));
+    enemyTableHTML.replaceWith(createPlayerBoard(nextPlayer));
+    if (gamemode === MODES.EASY_CPU) {
+      easyCPUTurn();
+      alliedTableHTML.replaceWith(createPlayerBoard(currentPlayerTurn));
+    } else if (gamemode === MODES.HARD_CPU) {
+      hardCPUTurn();
+      alliedTableHTML.replaceWith(createPlayerBoard(currentPlayerTurn));
+    } else {
+      [currentPlayerTurn, nextPlayer] = [nextPlayer, currentPlayerTurn];
+      startBattle();
+      //indicate it is player Two's turn
+      //enable clicking on Player One's board
+      //disable clicking on player Two's board
+    }
   });
-});
+}
 
-rotateButton.addEventListener("click", () => {
-  placementMode === PLACEMENT_MODE.VERTICAL
-    ? (placementMode = PLACEMENT_MODE.HORIZONTAL)
-    : (placementMode = PLACEMENT_MODE.VERTICAL);
-});
-
-resetButton.addEventListener("click", () => {
+function onReset(ships) {
   const board = currentPlayerTurn.board;
-  let tableHTML = document.querySelector(
-    `.battlefield-${currentPlayerTurn.name} table`,
-  );
+  let tableHTML = document.querySelector(`.battlefield table`);
   board.clear();
   ships.forEach((ship) => {
     ship.style.visibility = "visible";
   });
   tableHTML.replaceWith(createPlayerBoard(currentPlayerTurn));
-});
-randomizeButton.addEventListener("click", () => {
+}
+function onRotate() {
+  placementMode === PLACEMENT_MODE.VERTICAL
+    ? (placementMode = PLACEMENT_MODE.HORIZONTAL)
+    : (placementMode = PLACEMENT_MODE.VERTICAL);
+}
+function onRandomize(ships) {
   const board = currentPlayerTurn.board;
   board.clear();
-  let tableHTML = document.querySelector(
-    `.battlefield-${currentPlayerTurn.name} table`,
-  );
+  let tableHTML = document.querySelector(`.battlefield table`);
 
   for (let i = 0; i < shipLengths.length; i++) {
     let placementMode;
@@ -173,36 +200,64 @@ randomizeButton.addEventListener("click", () => {
   });
 
   tableHTML.replaceWith(createPlayerBoard(currentPlayerTurn));
-});
+}
+function onDragStart(e) {
+  let ship = e.target;
+  let rect = ship.getBoundingClientRect();
+  let shipSize = parseInt(ship.dataset.size);
+  dragOffsetX = e.clientX - rect.left - rect.width / 2 / shipSize;
+  dragOffsetY = e.clientY - rect.top - rect.height / 2;
+  ship.classList.add("dragging");
+}
 
-populateBoard(playerOne.board);
-populateBoard(playerTwo.board);
-startGame(playerOne, playerTwo);
-
-battlefieldTwoHTML.addEventListener("click", (e) => {
-  let gameboardTwo = playerTwo.board;
-  let tableOneHTML = document.querySelector(".battlefield-one table");
-  let tableTwoHTML = document.querySelector(".battlefield-two table");
-  let tileHTML = e.target.closest("td");
-  if (!tileHTML) return;
-
-  let x = tileHTML.dataset.x;
-  let y = tileHTML.dataset.y;
-  if (gameboardTwo.grid[y][x].hit) return;
-  gameboardTwo.receiveAttack(x, y);
-  tableTwoHTML.replaceWith(createPlayerBoard(playerTwo));
-
-  if (gamemode === MODES.EASY_CPU) {
-    easyCPUTurn();
-  } else if (gamemode === MODES.HARD_CPU) {
-    hardCPUTurn();
+function onDrag(e) {
+  const ship = e.target;
+  let tile;
+  if (placementMode.id === "VERTICAL") {
+    tile = document.elementFromPoint(e.clientX, e.clientY);
+    console.log(tile);
   } else {
-    //indicate it is player Two's turn
-    //enable clicking on Player One's board
-    //disable clicking on player Two's board
+    tile = document.elementFromPoint(
+      e.clientX - dragOffsetX,
+      e.clientY - dragOffsetY,
+    );
   }
-  tableOneHTML.replaceWith(createPlayerBoard(playerOne));
-});
+  removeHighlights();
+  if (tile === null || tile.tagName != "TD") return;
+
+  let x = parseInt(tile.dataset.x);
+  let y = parseInt(tile.dataset.y);
+  let shipSize = parseInt(ship.dataset.size);
+  let valid = placementMode.isValid(x, y, shipSize, currentPlayerTurn.board);
+  placementMode.highlightPlacement(x, y, shipSize, valid);
+}
+
+function onDragEnd(e) {
+  const ship = e.target;
+  ship.classList.remove("dragging");
+  let tile;
+  if (placementMode.id === "VERTICAL") {
+    tile = document.elementFromPoint(e.clientX, e.clientY);
+    console.log(tile);
+  } else {
+    tile = document.elementFromPoint(
+      e.clientX - dragOffsetX,
+      e.clientY - dragOffsetY,
+    );
+  }
+  if (tile === null || tile.tagName != "TD") return;
+  let x = parseInt(tile.dataset.x);
+  let y = parseInt(tile.dataset.y);
+  let shipSize = parseInt(ship.dataset.size);
+  let table = document.querySelector(`.battlefield table`);
+  let valid = placementMode.isValid(x, y, shipSize, currentPlayerTurn.board);
+  placementMode.placeShip(x, y, shipSize, currentPlayerTurn.board);
+
+  if (valid) {
+    ship.style.visibility = "hidden";
+  }
+  table.replaceWith(createPlayerBoard(currentPlayerTurn));
+}
 
 //dumb CPU strikes a random valid position.
 function easyCPUTurn() {
@@ -352,27 +407,6 @@ function getRandomPos(grid) {
       return [x, y];
     }
   }
-}
-
-function startGame(player1, player2) {
-  //indicate it is player One's turn
-  //enable clicking on Player Two's board
-  //disable clicking on player One's board
-  battlefieldOneHTML.append(createPlayerBoard(player1));
-  // battlefieldTwoHTML.append(createPlayerBoard(player2));
-}
-
-function populateBoard(gameboard) {
-  // gameboard.placeShipHorizontal(5, 0, 1);
-  // gameboard.placeShipVertical(7, 0, 2);
-  // gameboard.placeShipVertical(1, 1, 4);
-  // gameboard.placeShipVertical(4, 2, 2);
-  // gameboard.placeShipHorizontal(8, 3, 1);
-  // gameboard.placeShipHorizontal(7, 5, 3);
-  // gameboard.placeShipHorizontal(0, 6, 1);
-  // gameboard.placeShipHorizontal(3, 7, 3);
-  // gameboard.placeShipVertical(7, 9, 1);
-  // gameboard.placeShipVertical(9, 8, 2);
 }
 
 function getRandomInt(max) {
