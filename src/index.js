@@ -21,6 +21,9 @@ const fleetHTML = document.querySelector(".fleet");
 const battlefieldOneHTML = document.querySelector(".battlefield-one");
 const battlefieldTwoHTML = document.querySelector(".battlefield-two");
 const randomizeButton = document.querySelector(".random");
+const rotateButton = document.querySelector(".rotate");
+const resetButton = document.querySelector(".reset");
+const confirmButton = document.querySelector(".confirm");
 
 const shipLengths = [5, 4, 4, 3, 2];
 const gamemode = MODES.HARD_CPU;
@@ -114,7 +117,6 @@ ships.forEach((ship) => {
     let table = document.querySelector(
       `.battlefield-${currentPlayerTurn.name} table`,
     );
-    console.log(table);
     let valid = placementMode.isValid(x, y, shipSize, currentPlayerTurn.board);
     placementMode.placeShip(x, y, shipSize, currentPlayerTurn.board);
 
@@ -125,6 +127,23 @@ ships.forEach((ship) => {
   });
 });
 
+rotateButton.addEventListener("click", () => {
+  placementMode === PLACEMENT_MODE.VERTICAL
+    ? (placementMode = PLACEMENT_MODE.HORIZONTAL)
+    : (placementMode = PLACEMENT_MODE.VERTICAL);
+});
+
+resetButton.addEventListener("click", () => {
+  const board = currentPlayerTurn.board;
+  let tableHTML = document.querySelector(
+    `.battlefield-${currentPlayerTurn.name} table`,
+  );
+  board.clear();
+  ships.forEach((ship) => {
+    ship.style.visibility = "visible";
+  });
+  tableHTML.replaceWith(createPlayerBoard(currentPlayerTurn));
+});
 randomizeButton.addEventListener("click", () => {
   const board = currentPlayerTurn.board;
   board.clear();
@@ -149,9 +168,9 @@ randomizeButton.addEventListener("click", () => {
     }
   }
 
-  ships.forEach(ship => {
-    ship.style.visibility = 'hidden';
-  })
+  ships.forEach((ship) => {
+    ship.style.visibility = "hidden";
+  });
 
   tableHTML.replaceWith(createPlayerBoard(currentPlayerTurn));
 });

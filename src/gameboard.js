@@ -131,7 +131,6 @@ class Gameboard {
       else if (pos[1] >= this.size || pos[1] < 0) return false;
       else return true;
     });
-    console.log(result);
     return result;
   }
 
