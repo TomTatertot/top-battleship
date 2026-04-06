@@ -18,6 +18,7 @@ header {
   flex-direction: column;
   align-items: center;
   width: 100vw;
+  height: 10vh;
 }
 
 header .game-status{
@@ -46,7 +47,7 @@ body {
 }
 
 main {
-  height: 100vh;
+  height: 90vh;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -141,6 +142,7 @@ td.sunk {
 .battlefield-name {
   font-size: 2rem;
   font-weight: 700;
+  text-transform: uppercase;
 }
 
 .battlefield-name.enemy {
@@ -159,7 +161,7 @@ td.sunk {
   gap: 1rem;
 }
 
-.placement-button {
+.button {
   background-color: #010220;
   color: white;
   border: 1px solid var(--primary-text-color);
@@ -194,4 +196,43 @@ button:active{
   background-color: rgba(145, 16, 70, 0.774);;
 }
 
+.player-swap{
+  text-align: center;
+}
+.player-swap p{
+  color: white;
+  text-transform: uppercase;
+  font-size: 3.5rem;
+}
 
+.player-swap button{
+  border: 3px solid var(--primary-text-color);
+  margin-top: 2rem;
+  font-size: 2rem;
+} 
+
+.title-screen {
+  color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.title-screen img {
+  width: 600px;
+  padding: 1rem;
+}
+
+.title-screen .description {
+  font-size: 2rem;
+  text-transform: uppercase;
+  margin-top: -3rem;
+  margin-bottom: 1rem;
+}
+
+.title-screen button {
+  font-size: 1.4rem;
+  padding: 1rem 3rem;
+  border: 2px solid var(--primary-text-color);
+  width: 16rem;
+}

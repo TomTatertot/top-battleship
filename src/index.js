@@ -7,6 +7,10 @@ import {
   createShip,
   createPlacementScreen,
   createBattleScreen,
+  createPlayerSwapScreen,
+  createHeader,
+  createTitleScreen,
+  createGamemodeSelectionScreen,
   highlightHorizontalPlacement,
   highlightVerticalPlacement,
   removeHighlights,
@@ -18,16 +22,16 @@ const MODES = {
   HARD_CPU: "HARD_CPU",
 };
 
+const body = document.querySelector("body");
 const main = document.querySelector("main");
 const shipLengths = [5, 4, 4, 3, 2, 1];
-const gamemode = MODES.TWO_PLAYER;
+let gamemode = MODES.HARD_CPU;
 let playerOne = new Player("one");
 let playerTwo = new Player("two");
 let currentPlayerTurn = playerOne;
 let nextPlayer = playerTwo;
 let cpuLastHitPos = null;
 let cpuHitAxis = null;
-const battlefields = document.querySelectorAll(".battlefield-container");
 let dragOffsetX;
 let dragOffsetY;
 const PLACEMENT_MODE = {
@@ -58,22 +62,37 @@ const PLACEMENT_MODE = {
 };
 let placementMode = PLACEMENT_MODE.HORIZONTAL;
 
-startPlacement();
-// const confirmButton = document.querySelector(".confirm");
-// confirmButton.addEventListener(
-//   "click",
-//   () => {
-//     if (currentPlayerTurn.board.ships.length < shipLengths.length) return;
-//     onConfirmPlacement();
-//   },
-//   { once: true },
-// );
+loadTitleScreen();
 
-function startPlacement() {
-  console.log(currentPlayerTurn);
+function loadTitleScreen() {
+  main.append(createTitleScreen());
+  const startButton = document.querySelector(".start-button");
+  startButton.addEventListener("click", () => {loadGamemodeSelectionScreen()});
+}
 
+function loadGamemodeSelectionScreen(){
   main.innerHTML = "";
-  main.append(createPlacementScreen("Your fleet"));
+  main.append(createGamemodeSelectionScreen());
+  const easyCPUButton = document.querySelector(".easy-cpu-button");
+  const hardCPUButton = document.querySelector(".hard-cpu-button");
+  const coopButton = document.querySelector(".coop-button");
+
+  easyCPUButton.addEventListener("click", ()=> {
+    gamemode = MODES.EASY_CPU;
+    loadPlacementScreen();
+  })
+  hardCPUButton.addEventListener("click", ()=> {
+    gamemode = MODES.HARD_CPU;
+    loadPlacementScreen();
+  })
+  coopButton.addEventListener("click", ()=> {
+    gamemode = MODES.TWO_PLAYER;
+    loadPlacementScreen();
+  })
+}
+function loadPlacementScreen() {
+  main.innerHTML = "";
+  main.append(createPlacementScreen(currentPlayerTurn.name));
 
   const battlefield = document.querySelector(".battlefield");
   battlefield.append(createPlayerBoard(currentPlayerTurn));
@@ -99,28 +118,17 @@ function startPlacement() {
   confirmButton.addEventListener("click", () => onConfirmPlacement());
 }
 
-function onConfirmPlacement() {
-  const numShips = currentPlayerTurn.board.ships.length;
-    if (numShips < shipLengths.length) return;
-    if (nextPlayer === playerOne) {
-      currentPlayerTurn = playerOne;
-      nextPlayer = playerTwo;
-      startBattle();
-    } else if (gamemode === MODES.TWO_PLAYER) {
-      currentPlayerTurn = playerTwo;
-      nextPlayer = playerOne;
-      startPlacement();
-    } else {
-      startBattle();
-    }
-}
-
-function startBattle() {
+function loadBattleScreen() {
   console.log(playerOne.board.ships);
   console.log(playerTwo.board.ships);
 
+  const header = document.querySelector("header");
+  if (header !== null)
+    header.remove();
+  body.insertAdjacentElement("afterbegin",createHeader());
   main.innerHTML = "";
-  main.append(createBattleScreen());
+
+  main.append(createBattleScreen(currentPlayerTurn.name, nextPlayer.name, gamemode));
   const alliedFleetHTML = document.querySelector(".battlefield-one");
   const enemyFleetHTML = document.querySelector(".battlefield-two");
   alliedFleetHTML.append(createPlayerBoard(currentPlayerTurn));
@@ -136,6 +144,7 @@ function startBattle() {
     let x = tileHTML.dataset.x;
     let y = tileHTML.dataset.y;
     const hitTile = enemyBoard.grid[y][x];
+
     if (hitTile.hit) return;
     enemyBoard.receiveAttack(x, y);
     if (hitTile.ship !== null) {
@@ -151,12 +160,35 @@ function startBattle() {
       alliedTableHTML.replaceWith(createPlayerBoard(currentPlayerTurn));
     } else {
       [currentPlayerTurn, nextPlayer] = [nextPlayer, currentPlayerTurn];
-      startBattle();
-      //indicate it is player Two's turn
-      //enable clicking on Player One's board
-      //disable clicking on player Two's board
+      loadSwapScreen(loadBattleScreen);
     }
   });
+}
+
+function loadSwapScreen(nextScreenFunction) {
+  main.innerHTML = "";
+  main.append(createPlayerSwapScreen(currentPlayerTurn.name));
+  const startTurnButton = document.querySelector(".player-swap button");
+  startTurnButton.addEventListener("click", () => {
+    nextScreenFunction();
+  });
+}
+
+function onConfirmPlacement() {
+  const numShips = currentPlayerTurn.board.ships.length;
+  if (numShips < shipLengths.length) return;
+  if (nextPlayer === playerOne) {
+    currentPlayerTurn = playerOne;
+    nextPlayer = playerTwo;
+    loadBattleScreen();
+  } else if (gamemode === MODES.TWO_PLAYER) {
+    currentPlayerTurn = playerTwo;
+    nextPlayer = playerOne;
+    loadSwapScreen(loadPlacementScreen);
+    // loadPlacementScreen();
+  } else {
+    loadSwapScreen(loadBattleScreen);
+  }
 }
 
 function onReset(ships) {

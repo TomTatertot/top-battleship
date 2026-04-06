@@ -1,4 +1,6 @@
 import hitIcon from "../images/blast.png";
+import logoSrc from "../images/logo.png";
+
 function createPlayerBoard(player, hideShips = false) {
   let gameboard = player.board;
   const boardSize = gameboard.size;
@@ -40,7 +42,7 @@ function createPlayerBoard(player, hideShips = false) {
           // const img = document.createElement("img");
           // img.src = hitIcon;
           tileHTML.classList.add("hit");
-          if (tile.ship.isSunk()){
+          if (tile.ship.isSunk()) {
             tileHTML.classList.add("sunk");
           }
           tileHTML.innerHTML = `<img class= "hit-icon" src="${hitIcon}" alt="Ship hit icon">`;
@@ -58,53 +60,97 @@ function createPlayerBoard(player, hideShips = false) {
   return table;
 }
 
-function clearMain() {
-  const main = document.querySelector("main");
-  main.innerHTML = "";
+function createTitleScreen() {
+  const titleScreen = document.createElement("div");
+  titleScreen.classList.add("title-screen");
+  titleScreen.innerHTML = `
+    <img src="${logoSrc}" alt="Battleship logo" />
+    <p class="title-screen description">Locate and sink the enemy fleet</p>
+    <button class="button start-button">Start Game</button>
+    `;
+
+  return titleScreen;
 }
 
-function createStartScreen() {}
+function createGamemodeSelectionScreen() {
+  const selectionScreen = document.createElement("div");
+  selectionScreen.classList.add("title-screen");
+  selectionScreen.innerHTML = 
+  `
+    <img src="../images/logo.png" alt="" />
+    <p class="title-screen description">Select your gamemode</p>
+    <button class="button easy-cpu-button">Easy CPU</button> 
+    <button class="button hard-cpu-button">Hard CPU</button> 
+    <button class="button coop-button">Two Players</button> 
+  `
+  return selectionScreen;
+}
 
-function createPlacementScreen(battlefieldName) {
+function createPlacementScreen(playerName) {
   const placementScreen = document.createElement("div");
   placementScreen.classList.add("battlefield-placeship");
   placementScreen.innerHTML = `
       <div class="fleet">
-        <button class="placement-button rotate">Rotate</button>
+        <button class="button rotate">Rotate</button>
       </div>
       <div class="battlefield-container">
-        <div class="battlefield-name">${battlefieldName}</div>
+        <div class="battlefield-name">Player ${playerName}</div>
         <div class="battlefield"></div>
         <div class="button-flex">
-          <button class="placement-button battlefield-button random">Randomize</button>
-          <button class="placement-button battlefield-button reset">Reset</button>
+          <button class="button battlefield-button random">Randomize</button>
+          <button class="button battlefield-button reset">Reset</button>
         </div>
-          <button class="placement-button battlefield-button confirm">Confirm</button>
+          <button class="button battlefield-button confirm">Confirm</button>
       </div>`;
 
   return placementScreen;
 }
 
-// function createPlayerSwapScreen(){
-//   const swapScreen = document.createElement("div");
-//   swapScreen.classList.add()
-// }
+function createPlayerSwapScreen(nextPlayerName) {
+  const swapScreen = document.createElement("div");
+  swapScreen.classList.add("player-swap");
+  swapScreen.innerHTML = `
+    <div class="player-swap">
+      <p> Player ${nextPlayerName}'s Turn </p>
+      <button class="button">Start Turn</button>
+    </div>
+        `;
+  return swapScreen;
+}
 
-function createBattleScreen(){
+function createBattleScreen(currentPlayerName, nextPlayerName, gamemode) {
   const battleScreen = document.createElement("div");
   battleScreen.classList.add("battlefields");
+
+  let allyBattlefieldName;
+  let enemyBattlefieldName;
+  if (gamemode === "TWO_PLAYER") {
+    allyBattlefieldName = `Player ${currentPlayerName}'s Fleet`;
+    enemyBattlefieldName = `Player ${nextPlayerName}'s Fleet`;
+  } else {
+    allyBattlefieldName = "Your Fleet";
+    enemyBattlefieldName = "CPU's Fleet";
+  }
   battleScreen.innerHTML = `
-        <div class="battlefields">
-          <div class="battlefield-container">
-            <div class="battlefield-name">Your Fleet</div>
-            <div class="battlefield battlefield-one"></div>
-          </div>
-          <div class="battlefield-container">
-            <div class="battlefield-name enemy">Enemy Fleet</div>
-            <div class="battlefield battlefield-two"></div>
-          </div>
-        </div>`
-    return battleScreen;
+      <div class="battlefield-container">
+        <div class="battlefield-name">${allyBattlefieldName}</div>
+        <div class="battlefield battlefield-one"></div>
+      </div>
+      <div class="battlefield-container">
+        <div class="battlefield-name enemy">${enemyBattlefieldName}</div>
+        <div class="battlefield battlefield-two"></div>
+      </div>`;
+  return battleScreen;
+}
+
+function createHeader() {
+  const header = document.createElement("header");
+  const logo = document.createElement("img");
+  logo.classList.add("logo");
+  logo.src = logoSrc;
+
+  header.append(logo);
+  return header;
 }
 
 function createShip(shipSize) {
@@ -178,6 +224,10 @@ export {
   createShip,
   createPlacementScreen,
   createBattleScreen,
+  createPlayerSwapScreen,
+  createHeader,
+  createTitleScreen,
+  createGamemodeSelectionScreen,
   highlightHorizontalPlacement,
   highlightVerticalPlacement,
   removeHighlights,
