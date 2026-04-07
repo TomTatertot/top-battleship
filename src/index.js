@@ -10,6 +10,7 @@ import {
   createPlayerSwapScreen,
   createHeader,
   createTitleScreen,
+  createEndScreen,
   createGamemodeSelectionScreen,
   highlightHorizontalPlacement,
   highlightVerticalPlacement,
@@ -25,15 +26,15 @@ const MODES = {
 const body = document.querySelector("body");
 const main = document.querySelector("main");
 const shipLengths = [5, 4, 4, 3, 2, 1];
-let gamemode = MODES.HARD_CPU;
-let playerOne = new Player("one");
-let playerTwo = new Player("two");
+let gamemode = MODES.EASY_CPU;
+let playerOne = new Player("Player One");
+let playerTwo = null;
 let currentPlayerTurn = playerOne;
 let nextPlayer = playerTwo;
 let cpuLastHitPos = null;
 let cpuHitAxis = null;
-let dragOffsetX;
-let dragOffsetY;
+let dragOffsetX = null;
+let dragOffsetY = null;
 const PLACEMENT_MODE = {
   HORIZONTAL: {
     id: "HORIZONTAL",
@@ -63,32 +64,44 @@ const PLACEMENT_MODE = {
 let placementMode = PLACEMENT_MODE.HORIZONTAL;
 
 loadTitleScreen();
+// loadEndScreen(playerOne);
 
 function loadTitleScreen() {
+  main.innerHTML = "";
   main.append(createTitleScreen());
   const startButton = document.querySelector(".start-button");
-  startButton.addEventListener("click", () => {loadGamemodeSelectionScreen()});
+  startButton.addEventListener("click", () => {
+    loadGamemodeSelectionScreen();
+  });
 }
 
-function loadGamemodeSelectionScreen(){
+function loadGamemodeSelectionScreen() {
   main.innerHTML = "";
   main.append(createGamemodeSelectionScreen());
   const easyCPUButton = document.querySelector(".easy-cpu-button");
   const hardCPUButton = document.querySelector(".hard-cpu-button");
   const coopButton = document.querySelector(".coop-button");
 
-  easyCPUButton.addEventListener("click", ()=> {
+  easyCPUButton.addEventListener("click", () => {
     gamemode = MODES.EASY_CPU;
+    playerTwo = new Player("CPU");
+    nextPlayer = playerTwo;
+    placeShipsRandom(playerTwo.board);
     loadPlacementScreen();
-  })
-  hardCPUButton.addEventListener("click", ()=> {
+  });
+  hardCPUButton.addEventListener("click", () => {
     gamemode = MODES.HARD_CPU;
+    playerTwo = new Player("CPU");
+    nextPlayer = playerTwo;
+    placeShipsRandom(playerTwo.board);
     loadPlacementScreen();
-  })
-  coopButton.addEventListener("click", ()=> {
+  });
+  coopButton.addEventListener("click", () => {
     gamemode = MODES.TWO_PLAYER;
+    playerTwo = new Player("Player Two");
+    nextPlayer = playerTwo;
     loadPlacementScreen();
-  })
+  });
 }
 function loadPlacementScreen() {
   main.innerHTML = "";
@@ -123,12 +136,13 @@ function loadBattleScreen() {
   console.log(playerTwo.board.ships);
 
   const header = document.querySelector("header");
-  if (header !== null)
-    header.remove();
-  body.insertAdjacentElement("afterbegin",createHeader());
+  if (header !== null) header.remove();
+  body.insertAdjacentElement("afterbegin", createHeader());
   main.innerHTML = "";
 
-  main.append(createBattleScreen(currentPlayerTurn.name, nextPlayer.name, gamemode));
+  main.append(
+    createBattleScreen(currentPlayerTurn.name, nextPlayer.name, gamemode),
+  );
   const alliedFleetHTML = document.querySelector(".battlefield-one");
   const enemyFleetHTML = document.querySelector(".battlefield-two");
   alliedFleetHTML.append(createPlayerBoard(currentPlayerTurn));
@@ -147,11 +161,12 @@ function loadBattleScreen() {
 
     if (hitTile.hit) return;
     enemyBoard.receiveAttack(x, y);
+
     if (hitTile.ship !== null) {
       enemyTableHTML.replaceWith(createPlayerBoard(nextPlayer, true));
       return;
     }
-    enemyTableHTML.replaceWith(createPlayerBoard(nextPlayer));
+    enemyTableHTML.replaceWith(createPlayerBoard(nextPlayer, true));
     if (gamemode === MODES.EASY_CPU) {
       easyCPUTurn();
       alliedTableHTML.replaceWith(createPlayerBoard(currentPlayerTurn));
@@ -162,6 +177,28 @@ function loadBattleScreen() {
       [currentPlayerTurn, nextPlayer] = [nextPlayer, currentPlayerTurn];
       loadSwapScreen(loadBattleScreen);
     }
+  });
+}
+
+function loadEndScreen(winningPlayer) {
+  main.innerHTML = "";
+  main.append(createEndScreen(winningPlayer));
+  const rematchButton = document.querySelector(".rematch-button");
+  const menuButton = document.querySelector(".menu-button");
+  rematchButton.addEventListener("click", () => {
+    let currGamemode = gamemode;
+    resetGame();
+    gamemode = currGamemode;
+    if (gamemode === MODES.EASY_CPU || gamemode === MODES.HARD_CPU)
+      playerTwo = new Player("CPU");
+    else playerTwo = new Player("Player Two");
+
+    nextPlayer = playerTwo;
+    loadPlacementScreen();
+  });
+  menuButton.addEventListener("click", () => {
+    resetGame();
+    loadTitleScreen();
   });
 }
 
@@ -180,14 +217,13 @@ function onConfirmPlacement() {
   if (nextPlayer === playerOne) {
     currentPlayerTurn = playerOne;
     nextPlayer = playerTwo;
-    loadBattleScreen();
+    loadSwapScreen(loadBattleScreen);
   } else if (gamemode === MODES.TWO_PLAYER) {
     currentPlayerTurn = playerTwo;
     nextPlayer = playerOne;
     loadSwapScreen(loadPlacementScreen);
-    // loadPlacementScreen();
   } else {
-    loadSwapScreen(loadBattleScreen);
+    loadBattleScreen();
   }
 }
 
@@ -210,22 +246,7 @@ function onRandomize(ships) {
   board.clear();
   let tableHTML = document.querySelector(`.battlefield table`);
 
-  for (let i = 0; i < shipLengths.length; i++) {
-    let placementMode;
-    let randomNum = getRandomInt(2);
-    let invalidPlacement = true;
-    if (randomNum === 0) placementMode = PLACEMENT_MODE.HORIZONTAL;
-    else placementMode = PLACEMENT_MODE.VERTICAL;
-
-    while (invalidPlacement) {
-      let x = getRandomInt(board.size);
-      let y = getRandomInt(board.size);
-      if (placementMode.isValid(x, y, shipLengths[i], board)) {
-        placementMode.placeShip(x, y, shipLengths[i], board);
-        invalidPlacement = false;
-      }
-    }
-  }
+  placeShipsRandom(board);
 
   ships.forEach((ship) => {
     ship.style.visibility = "hidden";
@@ -291,6 +312,35 @@ function onDragEnd(e) {
   table.replaceWith(createPlayerBoard(currentPlayerTurn));
 }
 
+function placeShipsRandom(board) {
+  for (let i = 0; i < shipLengths.length; i++) {
+    let placementMode;
+    let randomNum = getRandomInt(2);
+    let invalidPlacement = true;
+    if (randomNum === 0) placementMode = PLACEMENT_MODE.HORIZONTAL;
+    else placementMode = PLACEMENT_MODE.VERTICAL;
+
+    while (invalidPlacement) {
+      let x = getRandomInt(board.size);
+      let y = getRandomInt(board.size);
+      if (placementMode.isValid(x, y, shipLengths[i], board)) {
+        placementMode.placeShip(x, y, shipLengths[i], board);
+        invalidPlacement = false;
+      }
+    }
+  }
+}
+
+function resetGame() {
+  gamemode = null;
+  playerOne = new Player("Player One");
+  playerTwo = null;
+  currentPlayerTurn = playerOne;
+  nextPlayer = null;
+  cpuLastHitPos = null;
+  cpuHitAxis = null;
+}
+
 //dumb CPU strikes a random valid position.
 function easyCPUTurn() {
   let gameboardOne = playerOne.board;
@@ -308,8 +358,10 @@ function hardCPUTurn() {
     let x = validPosition[0];
     let y = validPosition[1];
     gameboardOne.receiveAttack(x, y);
+    //if strike hits, strike again
     if (gridOne[y][x].ship !== null) {
       cpuLastHitPos = [x, y];
+      hardCPUTurn();
     }
     return;
   } // if last hit was a ship, strike the next available adjacent tile
@@ -328,10 +380,11 @@ function hardCPUTurn() {
     let x = validPosition[0];
     let y = validPosition[1];
     gameboardOne.receiveAttack(x, y);
-    //if a ship is struck, assign it to last position hit.
+    //if a ship is struck, assign it to last position hit and strike again.
     if (gridOne[y][x].ship !== null) {
       cpuHitAxis = getRelativeAxis(x, y, lastX, lastY);
       cpuLastHitPos = [x, y];
+      hardCPUTurn();
     }
   } else {
     //if all adjacent tiles have been struck and no ship has been hit, hit a random position
@@ -340,7 +393,11 @@ function hardCPUTurn() {
     let y = validPosition[1];
     gameboardOne.receiveAttack(x, y);
     cpuHitAxis = null;
-    if (gridOne[y][x].ship !== null) cpuLastHitPos = [x, y];
+    //if random strike is a hit, strike again
+    if (gridOne[y][x].ship !== null){
+      cpuLastHitPos = [x, y];
+      hardCPUTurn();
+    }
     else cpuLastHitPos = null;
   }
 }

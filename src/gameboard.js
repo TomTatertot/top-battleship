@@ -86,6 +86,7 @@ class Gameboard {
   }
 
   receiveAttack(x, y) {
+    console.log(x,y);
     let tile = this.grid[y][x];
     let ship = tile.ship;
 
