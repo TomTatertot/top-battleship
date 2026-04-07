@@ -1,7 +1,7 @@
 class Tile {
   constructor(){
     this.ship = null;
-    this.hit = false;
+    this.isHit = false;
   }
 }
 

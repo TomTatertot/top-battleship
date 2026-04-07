@@ -1,7 +1,7 @@
 import hitIcon from "../images/blast.png";
 import logoSrc from "../images/logo.png";
 
-function createPlayerBoard(player, hideShips = false) {
+function createPlayerTable(player, hideShips = false) {
   let gameboard = player.board;
   const boardSize = gameboard.size;
   const table = document.createElement("table");
@@ -37,7 +37,7 @@ function createPlayerBoard(player, hideShips = false) {
       if (!hideShips && tile.ship !== null) {
         tileHTML.classList.add("occupied");
       }
-      if (tile.hit) {
+      if (tile.isHit) {
         if (tile.ship !== null) {
           tileHTML.classList.add("hit");
           if (tile.ship.isSunk()) {
@@ -143,11 +143,11 @@ function createBattleScreen(currentPlayerName, nextPlayerName, gamemode) {
     enemyBattlefieldName = "CPU's Fleet";
   }
   battleScreen.innerHTML = `
-      <div class="battlefield-container">
+      <div class="battlefield-container battlefield-container-one">
         <div class="battlefield-name">${allyBattlefieldName}</div>
         <div class="battlefield battlefield-one"></div>
       </div>
-      <div class="battlefield-container">
+      <div class="battlefield-container battlefield-container-two">
         <div class="battlefield-name enemy">${enemyBattlefieldName}</div>
         <div class="battlefield battlefield-two"></div>
       </div>`;
@@ -231,7 +231,7 @@ function removeHighlights() {
 }
 
 export {
-  createPlayerBoard,
+  createPlayerTable,
   createShip,
   createPlacementScreen,
   createBattleScreen,

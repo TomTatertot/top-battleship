@@ -90,8 +90,8 @@ class Gameboard {
     let tile = this.grid[y][x];
     let ship = tile.ship;
 
-    if (tile.hit) return;
-    tile.hit = true;
+    if (tile.isHit) return;
+    tile.isHit = true;
     if (ship !== null) {
       ship.hit();
     }
@@ -110,7 +110,7 @@ class Gameboard {
     for (let i = 0; i < this.size; i++) {
       for (let j = 0; j < this.size; j++) {
         let tile = this.grid[i][j];
-        if (tile.ship === null && tile.hit) missedCoordinates.push([i, j]);
+        if (tile.ship === null && tile.isHit) missedCoordinates.push([i, j]);
       }
     }
     return missedCoordinates;
