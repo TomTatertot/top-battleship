@@ -230,6 +230,20 @@ function removeHighlights() {
   });
 }
 
+function fadePlayerBoard(){
+  const playerContainer = document.querySelector(".battlefield-container-one");
+  const cpuContainer = document.querySelector(".battlefield-container-two");
+  playerContainer.style.opacity = 0.5;  
+  cpuContainer.style.opacity = 1;  
+}
+
+function fadeCPUBoard(){
+  const playerContainer = document.querySelector(".battlefield-container-one");
+  const cpuContainer = document.querySelector(".battlefield-container-two");
+  playerContainer.style.opacity = 1;  
+  cpuContainer.style.opacity = 0.5;  
+}
+
 export {
   createPlayerTable,
   createShip,
@@ -240,6 +254,8 @@ export {
   createTitleScreen,
   createEndScreen,
   createGamemodeSelectionScreen,
+  fadePlayerBoard,
+  fadeCPUBoard,
   highlightHorizontalPlacement,
   highlightVerticalPlacement,
   removeHighlights,

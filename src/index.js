@@ -12,6 +12,8 @@ import {
   createTitleScreen,
   createEndScreen,
   createGamemodeSelectionScreen,
+  fadePlayerBoard,
+  fadeCPUBoard,
   highlightHorizontalPlacement,
   highlightVerticalPlacement,
   removeHighlights,
@@ -133,84 +135,61 @@ function loadPlacementScreen() {
 }
 
 function loadBattleScreen() {
-  console.log(playerOne.board.ships);
-  console.log(playerTwo.board.ships);
-
   const header = document.querySelector("header");
   if (header !== null) header.remove();
   body.insertAdjacentElement("afterbegin", createHeader());
   main.innerHTML = "";
-
   main.append(
     createBattleScreen(currentPlayerTurn.name, nextPlayer.name, gamemode),
-  );
-  const alliedBoardContainerHTML = document.querySelector(
-    ".battlefield-container-one",
-  );
-  const enemyBoardContainerHTML = document.querySelector(
-    ".battlefield-container-two",
   );
   const alliedBoardHTML = document.querySelector(".battlefield-one");
   const enemyBoardHTML = document.querySelector(".battlefield-two");
   alliedBoardHTML.append(createPlayerTable(currentPlayerTurn));
   enemyBoardHTML.append(createPlayerTable(nextPlayer, true));
 
-  alliedBoardContainerHTML.style.opacity = 0.5;
+  if (gamemode !== MODES.TWO_PLAYER) fadePlayerBoard();
 
-  enemyBoardHTML.addEventListener("click", (e) => {
-    if (isCPUTurn) return;
-    let enemyBoard = nextPlayer.board;
-    let alliedTableHTML = document.querySelector(".battlefield-one table");
-    let enemyTableHTML = document.querySelector(".battlefield-two table");
-    let tileHTML = e.target.closest("td");
-    if (!tileHTML) return;
+  enemyBoardHTML.addEventListener("click", (e) => onEnemyBoardClick(e));
+}
 
-    let x = tileHTML.dataset.x;
-    let y = tileHTML.dataset.y;
-    const hitTile = enemyBoard.grid[y][x];
+function onEnemyBoardClick(e) {
+  if (isCPUTurn) return;
+  let enemyBoard = nextPlayer.board;
+  let alliedTableHTML = document.querySelector(".battlefield-one table");
+  let enemyTableHTML = document.querySelector(".battlefield-two table");
+  let tileHTML = e.target.closest("td");
+  if (!tileHTML) return;
 
-    if (hitTile.isHit) {
-      return;
-    }
+  let x = tileHTML.dataset.x;
+  let y = tileHTML.dataset.y;
+  const hitTile = enemyBoard.grid[y][x];
 
-    enemyBoard.receiveAttack(x, y);
-    enemyTableHTML.replaceWith(createPlayerTable(nextPlayer, true));
+  if (hitTile.isHit) {
+    return;
+  }
 
-    if (hitTile.ship !== null) {
-      return;
-    }
+  enemyBoard.receiveAttack(x, y);
+  enemyTableHTML.replaceWith(createPlayerTable(nextPlayer, true));
 
-    alliedBoardContainerHTML.style.opacity = 1;
-    enemyBoardContainerHTML.style.opacity = 0.5;
-    console.log("wtf");
+  if (hitTile.ship !== null) {
+    return;
+  }
 
-    isCPUTurn = true;
-    setTimeout(() => {
-      if (gamemode === MODES.EASY_CPU) {
-        easyCPUTurn();
-        alliedTableHTML.replaceWith(createPlayerTable(currentPlayerTurn));
-      } else if (gamemode === MODES.HARD_CPU) {
-        hardCPUTurn();
-        alliedTableHTML.replaceWith(createPlayerTable(currentPlayerTurn));
-      } else {
-        [currentPlayerTurn, nextPlayer] = [nextPlayer, currentPlayerTurn];
-        loadSwapScreen(loadBattleScreen);
-      }
-      alliedBoardContainerHTML.style.opacity = 0.5;
-      enemyBoardContainerHTML.style.opacity = 1;
-      isCPUTurn = false;
-    }, 1000);
-    // if (gamemode === MODES.EASY_CPU) {
-    //   easyCPUTurn();
-    //   alliedTableHTML.replaceWith(createPlayerTable(currentPlayerTurn));
-    // } else if (gamemode === MODES.HARD_CPU) {
-    //   hardCPUTurn();
-    //   alliedTableHTML.replaceWith(createPlayerTable(currentPlayerTurn));
-    // } else {
-    //   [currentPlayerTurn, nextPlayer] = [nextPlayer, currentPlayerTurn];
-    //   loadSwapScreen(loadBattleScreen);
-    // }
-  });
+  fadeCPUBoard();
+
+  if (gamemode === MODES.TWO_PLAYER) {
+    [currentPlayerTurn, nextPlayer] = [nextPlayer, currentPlayerTurn];
+    loadSwapScreen(loadBattleScreen);
+    return;
+  }
+
+  isCPUTurn = true;
+  if (gamemode === MODES.EASY_CPU) {
+    easyCPUTurn();
+    alliedTableHTML.replaceWith(createPlayerTable(currentPlayerTurn));
+  } else if (gamemode === MODES.HARD_CPU) {
+    hardCPUTurn();
+  }
 }
 
 function easyCPUTurn() {
@@ -220,6 +199,24 @@ function easyCPUTurn() {
 }
 
 function hardCPUTurn() {
+  const alliedTableHTML = document.querySelector(".battlefield-one table");
+  const playerGrid = playerOne.board.grid;
+  let hitPos = getHardCPUHitPosition();
+  let tile = playerGrid[hitPos[1]][hitPos[0]];
+  setTimeout(() => {
+    if (tile.ship !== null) {
+      alliedTableHTML.replaceWith(createPlayerTable(currentPlayerTurn));
+      hardCPUTurn();
+    } else {
+      console.log("rejected");
+      alliedTableHTML.replaceWith(createPlayerTable(currentPlayerTurn));
+      fadePlayerBoard();
+      isCPUTurn = false;
+    }
+  }, 1000);
+}
+
+function getHardCPUHitPosition() {
   let gameboardOne = playerOne.board;
   let gridOne = gameboardOne.grid;
   let validPosition;
@@ -232,14 +229,14 @@ function hardCPUTurn() {
     if (gridOne[y][x].ship !== null) {
       cpuLastHitPos = [x, y];
     }
-    return;
+    return [x, y];
   }
 
   let lastX = cpuLastHitPos[0];
   let lastY = cpuLastHitPos[1];
-  // if last hit was a ship, strike the next available adjacent tile
+  // if last hit was a ship, get the next available adjacent tile
   if (!cpuHitAxis) validPosition = getAdjacentPos(lastX, lastY, gridOne);
-  // if the cpu hits the ship twice, keep striking on the same axis
+  // if the cpu hits the ship twice, get adjacent pos on the same axis
   else if (cpuHitAxis === "X")
     validPosition = getAdjacentHorizontalPos(lastX, lastY, gridOne);
   else if (cpuHitAxis === "Y")
@@ -255,17 +252,12 @@ function hardCPUTurn() {
       cpuHitAxis = getRelativeAxis(x, y, lastX, lastY);
       cpuLastHitPos = [x, y];
     }
+    return [x, y];
   } else {
     //if all adjacent tiles have been struck and no ship has been hit, hit a random position
     cpuLastHitPos = null;
-    hardCPUTurn();
-    // validPosition = getRandomPos(gridOne);
-    // let x = validPosition[0];
-    // let y = validPosition[1];
-    // gameboardOne.receiveAttack(x, y);
-    // cpuHitAxis = null;
-    // if (gridOne[y][x].ship !== null) cpuLastHitPos = [x, y];
-    // else cpuLastHitPos = null;
+    cpuHitAxis = null;
+    return getHardCPUHitPosition();
   }
 }
 
