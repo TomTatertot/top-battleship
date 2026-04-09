@@ -33,9 +33,11 @@ let playerOne = new Player("Player One");
 let playerTwo = null;
 let currentPlayerTurn = playerOne;
 let nextPlayer = playerTwo;
+
 let isCPUTurn;
 let cpuLastHitPos = null;
 let cpuHitAxis = null;
+
 let dragOffsetX = null;
 let dragOffsetY = null;
 const PLACEMENT_MODE = {
@@ -200,23 +202,75 @@ function easyCPUTurn() {
 
 function hardCPUTurn() {
   const alliedTableHTML = document.querySelector(".battlefield-one table");
-  const playerGrid = playerOne.board.grid;
+  const playerBoard = playerOne.board;
+  const playerGrid = playerBoard.grid;
+  //getHardCPUHitPosition() returns undefined when CPU has struck all the ships tiles.
   let hitPos = getHardCPUHitPosition();
-  let tile = playerGrid[hitPos[1]][hitPos[0]];
+  if (!hitPos){
+    //reset values and strike a random position
+    cpuHitAxis = null
+    cpuLastHitPos = null
+    hitPos = getHardCPUHitPosition();
+  }
+  let x = hitPos[0];
+  let y = hitPos[1];
+  playerBoard.receiveAttack(x, y);
+  let tile = playerGrid[y][x];
   setTimeout(() => {
     if (tile.ship !== null) {
       alliedTableHTML.replaceWith(createPlayerTable(currentPlayerTurn));
+      if (cpuLastHitPos !== null) {
+        cpuHitAxis = getRelativeAxis(x, y, cpuLastHitPos[0], cpuLastHitPos[1]);
+      }
+      cpuLastHitPos = hitPos;
       hardCPUTurn();
     } else {
-      console.log("rejected");
       alliedTableHTML.replaceWith(createPlayerTable(currentPlayerTurn));
       fadePlayerBoard();
       isCPUTurn = false;
     }
   }, 1000);
 }
-
 function getHardCPUHitPosition() {
+  let gameboardOne = playerOne.board;
+  let gridOne = gameboardOne.grid;
+  //if cpu's last strike was a miss, strike another random tile
+  if (cpuLastHitPos === null) {
+    let randomPosition = getRandomPos(gridOne);
+    return [randomPosition[0], randomPosition[1]];
+  }
+  // if last hit was a ship, get the next available adjacent tile
+  let adjacentPosition;
+  if (!cpuHitAxis)
+    adjacentPosition = getAdjacentPos(
+      cpuLastHitPos[0],
+      cpuLastHitPos[1],
+      gridOne,
+    );
+  // if the cpu hits the ship twice, get adjacent pos on the same axis
+  else if (cpuHitAxis === "X")
+    adjacentPosition = getAdjacentHorizontalPos(
+      cpuLastHitPos[0],
+      cpuLastHitPos[1],
+      gridOne,
+    );
+  else if (cpuHitAxis === "Y")
+    adjacentPosition = getAdjacentVerticalPos(
+      cpuLastHitPos[0],
+      cpuLastHitPos[1],
+      gridOne,
+    );
+
+  //adjacent position is false if all the adjacent tiles have been struck
+  if (adjacentPosition) {
+    return [adjacentPosition[0], adjacentPosition[1]];
+  } else {
+    //if all adjacent tiles have been struck and no ship has been hit, return undefined
+    return;
+  }
+}
+
+function getHardCPUHitPosition1() {
   let gameboardOne = playerOne.board;
   let gridOne = gameboardOne.grid;
   let validPosition;
