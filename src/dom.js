@@ -75,7 +75,7 @@ function createGamemodeSelectionScreen() {
   selectionScreen.classList.add("title-screen");
   selectionScreen.innerHTML = 
   `
-    <img class= "logo" src="../images/logo.png" alt="" />
+    <img class= "logo" src=${logoSrc} alt="" />
     <p class="title-screen text">Select your gamemode</p>
     <button class="button easy-cpu-button">Easy CPU</button> 
     <button class="button hard-cpu-button">Hard CPU</button> 
@@ -88,7 +88,7 @@ function createEndScreen(winningPlayer){
   const endScreen = document.createElement("div");
   endScreen.classList.add("end-screen");
   endScreen.innerHTML = `
-    <img class= "logo" src="../images/logo.png" alt="" />
+    <img class= "logo" src=${logoSrc} alt="" />
     <p class="end-screen text">${winningPlayer.name} wins!</p>
     <button class="button rematch-button">Rematch</button>
     <button class="button menu-button">Main Menu</button>

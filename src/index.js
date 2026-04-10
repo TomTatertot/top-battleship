@@ -28,7 +28,7 @@ const MODES = {
 const body = document.querySelector("body");
 const main = document.querySelector("main");
 const shipLengths = [5, 4, 4, 3, 2, 1];
-let gamemode = MODES.EASY_CPU;
+let gamemode = null;
 let playerOne = new Player("Player One");
 let playerTwo = null;
 let currentPlayerTurn = playerOne;
@@ -69,7 +69,6 @@ const PLACEMENT_MODE = {
 let placementMode = PLACEMENT_MODE.HORIZONTAL;
 
 loadTitleScreen();
-// loadEndScreen(playerOne);
 
 function loadTitleScreen() {
   main.innerHTML = "";
@@ -157,7 +156,6 @@ function loadBattleScreen() {
 function onEnemyBoardClick(e) {
   if (isCPUTurn) return;
   let enemyBoard = nextPlayer.board;
-  let alliedTableHTML = document.querySelector(".battlefield-one table");
   let enemyTableHTML = document.querySelector(".battlefield-two table");
   let tileHTML = e.target.closest("td");
   if (!tileHTML) return;
@@ -172,6 +170,8 @@ function onEnemyBoardClick(e) {
 
   enemyBoard.receiveAttack(x, y);
   enemyTableHTML.replaceWith(createPlayerTable(nextPlayer, true));
+
+  if (enemyBoard.allShipsSunk()) loadEndScreen(currentPlayerTurn);
 
   if (hitTile.ship !== null) {
     return;
@@ -188,16 +188,32 @@ function onEnemyBoardClick(e) {
   isCPUTurn = true;
   if (gamemode === MODES.EASY_CPU) {
     easyCPUTurn();
-    alliedTableHTML.replaceWith(createPlayerTable(currentPlayerTurn));
   } else if (gamemode === MODES.HARD_CPU) {
     hardCPUTurn();
   }
+  //if CPU wins, load end screen
+  if (playerOne.board.allShipsSunk()) loadEndScreen(currentPlayerTurn);
+
 }
 
 function easyCPUTurn() {
-  let gameboardOne = playerOne.board;
-  let randomPos = getRandomPos(gameboardOne.grid);
-  gameboardOne.receiveAttack(randomPos[0], randomPos[1]);
+  let playerTableHTML = document.querySelector(".battlefield-one table");
+  let playerBoard = playerOne.board;
+  let playerGridArray = playerOne.board.grid;
+  let randomPos = getRandomPos(playerGridArray);
+  let tile = playerGridArray[randomPos[1]][randomPos[0]];
+  setTimeout(() => {
+    playerBoard.receiveAttack(randomPos[0], randomPos[1]);
+    if (tile.ship !== null) {
+      playerTableHTML.replaceWith(createPlayerTable(playerOne));
+      easyCPUTurn();
+    }
+    else {
+      playerTableHTML.replaceWith(createPlayerTable(playerOne));
+      fadePlayerBoard();
+      isCPUTurn = false;
+    }
+  }, 1000);
 }
 
 function hardCPUTurn() {
@@ -206,10 +222,10 @@ function hardCPUTurn() {
   const playerGrid = playerBoard.grid;
   //getHardCPUHitPosition() returns undefined when CPU has struck all the ships tiles.
   let hitPos = getHardCPUHitPosition();
-  if (!hitPos){
+  if (!hitPos) {
     //reset values and strike a random position
-    cpuHitAxis = null
-    cpuLastHitPos = null
+    cpuHitAxis = null;
+    cpuLastHitPos = null;
     hitPos = getHardCPUHitPosition();
   }
   let x = hitPos[0];
@@ -270,65 +286,14 @@ function getHardCPUHitPosition() {
   }
 }
 
-function getHardCPUHitPosition1() {
-  let gameboardOne = playerOne.board;
-  let gridOne = gameboardOne.grid;
-  let validPosition;
-  //if cpu's last strike was a miss, strike another random tile
-  if (cpuLastHitPos === null) {
-    validPosition = getRandomPos(gridOne);
-    let x = validPosition[0];
-    let y = validPosition[1];
-    gameboardOne.receiveAttack(x, y);
-    if (gridOne[y][x].ship !== null) {
-      cpuLastHitPos = [x, y];
-    }
-    return [x, y];
-  }
-
-  let lastX = cpuLastHitPos[0];
-  let lastY = cpuLastHitPos[1];
-  // if last hit was a ship, get the next available adjacent tile
-  if (!cpuHitAxis) validPosition = getAdjacentPos(lastX, lastY, gridOne);
-  // if the cpu hits the ship twice, get adjacent pos on the same axis
-  else if (cpuHitAxis === "X")
-    validPosition = getAdjacentHorizontalPos(lastX, lastY, gridOne);
-  else if (cpuHitAxis === "Y")
-    validPosition = getAdjacentVerticalPos(lastX, lastY, gridOne);
-
-  //valid position is false if all the adjacent tiles have been struck
-  if (validPosition) {
-    let x = validPosition[0];
-    let y = validPosition[1];
-    gameboardOne.receiveAttack(x, y);
-    //if a ship is struck, assign it to last position hit.
-    if (gridOne[y][x].ship !== null) {
-      cpuHitAxis = getRelativeAxis(x, y, lastX, lastY);
-      cpuLastHitPos = [x, y];
-    }
-    return [x, y];
-  } else {
-    //if all adjacent tiles have been struck and no ship has been hit, hit a random position
-    cpuLastHitPos = null;
-    cpuHitAxis = null;
-    return getHardCPUHitPosition();
-  }
-}
-
 function loadEndScreen(winningPlayer) {
   main.innerHTML = "";
   main.append(createEndScreen(winningPlayer));
   const rematchButton = document.querySelector(".rematch-button");
   const menuButton = document.querySelector(".menu-button");
   rematchButton.addEventListener("click", () => {
-    let currGamemode = gamemode;
-    resetGame();
-    gamemode = currGamemode;
-    if (gamemode === MODES.EASY_CPU || gamemode === MODES.HARD_CPU)
-      playerTwo = new Player("CPU");
-    else playerTwo = new Player("Player Two");
-
-    nextPlayer = playerTwo;
+    rematchGame();
+    placeShipsRandom(playerTwo.board);
     loadPlacementScreen();
   });
   menuButton.addEventListener("click", () => {
@@ -403,7 +368,6 @@ function onDrag(e) {
   let tile;
   if (placementMode.id === "VERTICAL") {
     tile = document.elementFromPoint(e.clientX, e.clientY);
-    console.log(tile);
   } else {
     tile = document.elementFromPoint(
       e.clientX - dragOffsetX,
@@ -426,7 +390,6 @@ function onDragEnd(e) {
   let tile;
   if (placementMode.id === "VERTICAL") {
     tile = document.elementFromPoint(e.clientX, e.clientY);
-    console.log(tile);
   } else {
     tile = document.elementFromPoint(
       e.clientX - dragOffsetX,
@@ -469,9 +432,19 @@ function placeShipsRandom(board) {
 function resetGame() {
   gamemode = null;
   playerOne = new Player("Player One");
+  playerOne.board.clear();
   playerTwo = null;
   currentPlayerTurn = playerOne;
   nextPlayer = null;
+  cpuLastHitPos = null;
+  cpuHitAxis = null;
+}
+
+function rematchGame() {
+  playerOne.board.clear();
+  playerTwo.board.clear();
+  currentPlayerTurn = playerOne;
+  nextPlayer = playerTwo;
   cpuLastHitPos = null;
   cpuHitAxis = null;
 }
@@ -564,8 +537,8 @@ function getRelativeAxis(x, y, x2, y2) {
 function getRandomPos(grid) {
   let invalidAttack = true;
   while (invalidAttack) {
-    let x = getRandomInt(grid.length - 1);
-    let y = getRandomInt(grid.length - 1);
+    let x = getRandomInt(grid.length);
+    let y = getRandomInt(grid.length);
     let tile = grid[y][x];
     if (tile.isHit === false) {
       invalidAttack = false;

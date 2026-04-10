@@ -144,20 +144,20 @@ describe("Gameboard receiveAttack()", () => {
   });
 });
 
-describe("Gameboard gameOver()", () => {
+describe("Gameboard allShipsSunk()", () => {
   let gameboard = new Gameboard();
   gameboard.placeShipHorizontal(1, 1, 3);
   gameboard.placeShipHorizontal(1, 2, 3);
   test("False if a ship still stands", () => {
     gameboard.receiveAttack(1, 1);
     gameboard.receiveAttack(2, 1);
-    expect(gameboard.gameOver()).toBe(false);
+    expect(gameboard.allShipsSunk()).toBe(false);
   });
   test("True if all ships on the board are sunk", () => {
     let ships = gameboard.ships;
     ships.forEach((ship) => {
       ship.numHits = ship.length;
     });
-    expect(gameboard.gameOver()).toBe(true);
+    expect(gameboard.allShipsSunk()).toBe(true);
   });
 });

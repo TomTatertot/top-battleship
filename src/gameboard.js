@@ -86,7 +86,6 @@ class Gameboard {
   }
 
   receiveAttack(x, y) {
-    console.log(x,y);
     let tile = this.grid[y][x];
     let ship = tile.ship;
 
@@ -97,7 +96,7 @@ class Gameboard {
     }
   }
 
-  gameOver() {
+  allShipsSunk() {
     if (this.ships.some((ship) => !ship.isSunk())) {
       return false;
     }
